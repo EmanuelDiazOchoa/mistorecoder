@@ -1,12 +1,27 @@
 // src/screens/HomeScreen.js
 import React from 'react';
-import { View, Text, Button } from 'react-native';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen() {
+  const products = useSelector(state => state.products.products);
+
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Tienda - Lista de Productos</Text>
-      <Button title="Ver producto" onPress={() => navigation.navigate('Details')} />
+    <View style={styles.container}>
+      <Text style={styles.title}>Lista de Productos</Text>
+      <FlatList
+        data={products}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <Text style={styles.item}>{item.name} - ${item.price}</Text>
+        )}
+      />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 10 },
+  item: { fontSize: 18, marginVertical: 5 },
+});

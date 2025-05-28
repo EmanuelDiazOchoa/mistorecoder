@@ -1,25 +1,31 @@
 // src/redux/productsSlice.js
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { db } from '../firebase/firebase';
+import { ref, onValue } from 'firebase/database';
 
-const initialState = {
-  products: [
-    { id: '1', name: 'Producto A', price: 100 },
-    { id: '2', name: 'Producto B', price: 200 },
-  ],
-};
+export const fetchProducts = createAsyncThunk('products/fetchProducts', async () => {
+  return new Promise((resolve) => {
+    const productsRef = ref(db, 'products/');
+    onValue(productsRef, (snapshot) => {
+      const data = snapshot.val();
+      const loaded = data ? Object.entries(data).map(([id, value]) => ({ id, ...value })) : [];
+      resolve(loaded);
+    });
+  });
+});
 
 const productsSlice = createSlice({
   name: 'products',
-  initialState,
-  reducers: {
-    addProduct(state, action) {
-      state.products.push(action.payload);
-    },
-    removeProduct(state, action) {
-      state.products = state.products.filter(p => p.id !== action.payload);
-    },
-  },
+  initialState: { products: [], loading: false },
+  reducers: {},
+  extraReducers: builder => {
+    builder
+      .addCase(fetchProducts.pending, state => { state.loading = true; })
+      .addCase(fetchProducts.fulfilled, (state, action) => {
+        state.products = action.payload;
+        state.loading = false;
+      });
+  }
 });
 
-export const { addProduct, removeProduct } = productsSlice.actions;
 export default productsSlice.reducer;

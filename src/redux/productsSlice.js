@@ -1,6 +1,6 @@
 // src/redux/productsSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { db } from '../firebase/firebase';
+import { db } from '../service/firebase';
 import { ref, onValue } from 'firebase/database';
 
 export const fetchProducts = createAsyncThunk('products/fetchProducts', async () => {

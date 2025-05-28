@@ -1,11 +1,12 @@
 // src/services/authApi.js
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebase'; // ✔️ Importa el auth correcto
+import { auth } from '../../service/firebase';
+
 
 export const authApi = createApi({
   reducerPath: 'authApi',
-  baseQuery: async () => ({ data: {} }), // ✔️ Ya que usamos lógica local, no fetch real
+  baseQuery: async () => ({ data: {} }), 
   endpoints: (builder) => ({
     signup: builder.mutation({
       async queryFn({ email, password }) {

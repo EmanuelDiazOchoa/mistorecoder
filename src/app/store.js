@@ -1,13 +1,14 @@
-// Este archivo configura el store de Redux y registra el API y el slice
 import { configureStore } from '@reduxjs/toolkit';
+import productsReducer from './productsSlice';
+import authReducer from '../features/auth/authSlice';
 import { authApi } from '../features/auth/authApi';
-import authSlice from '../features/auth/authSlice';
 
 export const store = configureStore({
   reducer: {
-    [authApi.reducerPath]: authApi.reducer,
-    auth: authSlice,
+    products: productsReducer,
+    auth: authReducer,
+    [authApi.reducerPath]: authApi.reducer, // 👈 ESTO es obligatorio
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authApi.middleware),
+    getDefaultMiddleware().concat(authApi.middleware), // 👈 También esto
 });

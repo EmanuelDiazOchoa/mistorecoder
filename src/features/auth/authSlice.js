@@ -1,4 +1,3 @@
-// Este slice guarda al usuario autenticado en Redux
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {

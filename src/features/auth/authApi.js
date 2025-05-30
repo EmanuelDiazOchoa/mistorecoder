@@ -4,7 +4,7 @@ import { auth } from '../../service/firebase';
 
 export const authApi = createApi({
   reducerPath: 'authApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/' }), // no se usa en funciones async personalizadas
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }), 
   endpoints: (builder) => ({
     signup: builder.mutation({
       async queryFn({ email, password }) {

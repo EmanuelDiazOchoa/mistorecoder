@@ -1,0 +1,58 @@
+// src/navigation/BottomTabNavigator.js
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { MaterialIcons } from '@expo/vector-icons';
+
+import HomeScreen from '../screens/HomeScreen';
+import CategoriesScreen from '../screens/CategoriesScreen';
+import CartScreen from '../screens/CartScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+
+const Tab = createBottomTabNavigator();
+
+const BottomTabNavigator = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: '#2f80ed',
+        tabBarInactiveTintColor: '#999',
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          borderTopWidth: 0.5,
+          borderTopColor: '#ccc',
+          height: 60,
+        },
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+
+          switch (route.name) {
+            case 'Inicio':
+              iconName = 'home';
+              break;
+            case 'Categorías':
+              iconName = 'category';
+              break;
+            case 'Carrito':
+              iconName = 'shopping-cart';
+              break;
+            case 'Perfil':
+              iconName = 'person';
+              break;
+            default:
+              iconName = 'circle';
+          }
+
+          return <MaterialIcons name={iconName} size={size} color={color} />;
+        },
+      })}
+    >
+      <Tab.Screen name="Inicio" component={HomeScreen} />
+      <Tab.Screen name="Categorías" component={CategoriesScreen} />
+      <Tab.Screen name="Carrito" component={CartScreen} />
+      <Tab.Screen name="Perfil" component={ProfileScreen} />
+    </Tab.Navigator>
+  );
+};
+
+export default BottomTabNavigator;

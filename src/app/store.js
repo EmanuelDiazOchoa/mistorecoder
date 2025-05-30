@@ -7,8 +7,8 @@ export const store = configureStore({
   reducer: {
     products: productsReducer,
     auth: authReducer,
-    [authApi.reducerPath]: authApi.reducer, // 👈 ESTO es obligatorio
+    [authApi.reducerPath]: authApi.reducer, 
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authApi.middleware), // 👈 También esto
+    getDefaultMiddleware().concat(authApi.middleware), 
 });

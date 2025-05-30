@@ -17,11 +17,22 @@ const BottomTabNavigator = () => {
         headerShown: false,
         tabBarActiveTintColor: '#2f80ed',
         tabBarInactiveTintColor: '#999',
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+          marginBottom: 4,
+        },
         tabBarStyle: {
           backgroundColor: '#fff',
-          borderTopWidth: 0.5,
-          borderTopColor: '#ccc',
-          height: 60,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          height: 70,
+          position: 'absolute',
+          shadowColor: '#000',
+          shadowOpacity: 0.05,
+          shadowOffset: { width: 0, height: -4 },
+          shadowRadius: 6,
+          elevation: 10,
         },
         tabBarIcon: ({ color, size }) => {
           let iconName;
@@ -43,7 +54,7 @@ const BottomTabNavigator = () => {
               iconName = 'circle';
           }
 
-          return <MaterialIcons name={iconName} size={size} color={color} />;
+          return <MaterialIcons name={iconName} size={26} color={color} />;
         },
       })}
     >

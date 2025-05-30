@@ -11,7 +11,7 @@ export default function HomeScreen({ navigation }) {
     dispatch(fetchProducts());
   }, []);
 
-  // 🔽 Función que devuelve la imagen correspondiente al producto
+  
   const getProductImage = (name) => {
     switch (name.toLowerCase()) {
       case 'pan':
@@ -41,7 +41,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* 🏪 Logo de la tienda */}
+      
       <View style={styles.header}>
         <Image
           source={require('../../assets/PasteleriaRoma.webp')}
@@ -51,7 +51,7 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.subtitle}>Lo mejor en panificados</Text>
       </View>
 
-      {/* 🛒 Lista de productos */}
+      
       <FlatList
         data={products}
         keyExtractor={item => item.id.toString()}

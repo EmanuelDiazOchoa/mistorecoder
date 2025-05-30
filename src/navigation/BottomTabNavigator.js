@@ -56,10 +56,10 @@ const BottomTabNavigator = () => {
         },
       })}
     >
-      <Tab.Screen name="Perfil" component={ProfileScreen} />
       <Tab.Screen name="Inicio" component={HomeScreen} />
       <Tab.Screen name="Categorías" component={CategoriesScreen} />
       <Tab.Screen name="Carrito" component={CartScreen} />
+      <Tab.Screen name="Perfil" component={ProfileScreen} />
     </Tab.Navigator>
   );
 };

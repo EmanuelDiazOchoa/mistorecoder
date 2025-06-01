@@ -1,10 +1,27 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
 
 export default function CartScreen() {
+  const cartItems = useSelector((state) => state.cart.items);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Carrito de compras</Text>
+      <Text style={styles.title}>🛒 Tu carrito</Text>
+      {cartItems.length === 0 ? (
+        <Text style={styles.empty}>El carrito está vacío.</Text>
+      ) : (
+        <FlatList
+          data={cartItems}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          renderItem={({ item }) => (
+            <View style={styles.item}>
+              <Text style={styles.itemText}>{item.name}</Text>
+              <Text style={styles.itemPrice}>${item.price}</Text>
+            </View>
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -12,11 +29,36 @@ export default function CartScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#fff',
   },
-  text: {
-    fontSize: 20,
+  title: {
+    fontSize: 22,
     fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#2f80ed',
+    textAlign: 'center',
+  },
+  empty: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 50,
+  },
+  item: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  itemText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  itemPrice: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2f80ed',
   },
 });

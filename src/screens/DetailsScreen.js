@@ -1,4 +1,6 @@
 import React from 'react';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../redux/cartSlice';
 import {
   View,
   Text,
@@ -22,26 +24,25 @@ const getProductImage = (name) => {
 
 export default function DetailsScreen({ route }) {
   const { product } = route.params;
+  const dispatch = useDispatch();
 
   const handleAddToCart = () => {
+    dispatch(addToCart(product));
     Alert.alert('¡Agregado!', `${product.name} fue agregado al carrito.`);
   };
 
   return (
     <View style={styles.container}>
-      
       <Image
         source={getProductImage(product.name)}
         style={styles.image}
       />
-
       <View style={styles.infoContainer}>
         <Text style={styles.title}>{product.name}</Text>
         <Text style={styles.price}>${product.price}</Text>
         <Text style={styles.description}>
-          Producto artesanal de calidad premium, perfecto para tu día. Elaborado con ingredientes frescos y mucho amor.
+          Producto artesanal de calidad premium. Elaborado con ingredientes frescos y mucho amor.
         </Text>
-
         <Pressable style={styles.button} onPress={handleAddToCart}>
           <Text style={styles.buttonText}>Agregar al carrito</Text>
         </Pressable>

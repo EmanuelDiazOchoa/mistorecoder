@@ -1,32 +1,24 @@
-// src/components/ProductCard.js
 import React from 'react';
-import { Pressable, View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 
-/**
- * Props:
- *  - item  : { id, name, price }
- *  - onPress: función que se ejecuta al tocar la tarjeta
- */
-export default function ProductCard({ item, onPress }) {
-  // ↓ si en el futuro quieres imágenes por item, cámbialo aquí
-  const getProductImage = () => {
-    switch (item.name.toLowerCase()) {
-      case 'pan':
-        return require('../../assets/Pan.webp');
-      case 'torta':
-        return require('../../assets/Torta.webp');
-      case 'budin':
-        return require('../../assets/Budin.webp');
-    }
-  };
+const getProductImage = (name) => {
+  switch (name.toLowerCase()) {
+    case 'pan':
+      return require('../../assets/Pan.webp');
+    case 'torta':
+      return require('../../assets/Torta.webp');
+    case 'budin':
+      return require('../../assets/Budin.webp');
+  }
+};
 
+export default function ProductCard({ product, onPress }) {
   return (
-    <Pressable style={styles.card} onPress={onPress}>
-      <Image source={getProductImage()} style={styles.image} />
-
+    <Pressable onPress={onPress} style={styles.card}>
+      <Image source={getProductImage(product.name)} style={styles.image} />
       <View style={styles.info}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.price}>${item.price}</Text>
+        <Text style={styles.name}>{product.name}</Text>
+        <Text style={styles.price}>${product.price}</Text>
       </View>
     </Pressable>
   );
@@ -51,7 +43,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 15,
   },
-  info: { flex: 1 },
+  info: {
+    flex: 1,
+  },
   name: {
     fontSize: 18,
     fontWeight: '600',

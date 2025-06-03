@@ -1,27 +1,41 @@
 import { createSlice } from '@reduxjs/toolkit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createAsyncThunk } from '@reduxjs/toolkit';
 
-const initialState = {
-  items: [], 
-};
+const CART_STORAGE_KEY = 'cartItems';
+
+export const loadCartFromStorage = createAsyncThunk(
+  'cart/loadCartFromStorage',
+  async () => {
+    const stored = await AsyncStorage.getItem(CART_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  }
+);
 
 const cartSlice = createSlice({
   name: 'cart',
-  initialState,
+  initialState: {
+    items: [],
+    status: 'idle',
+  },
   reducers: {
-    addToCart(state, action) {
-      const existing = state.items.find(item => item.id === action.payload.id);
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        state.items.push({ ...action.payload, quantity: 1 });
-      }
+    addToCart: (state, action) => {
+      state.items.push(action.payload);
+      AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state.items));
     },
-    removeFromCart(state, action) {
-      state.items = state.items.filter(item => item.id !== action.payload);
+    removeFromCart: (state, action) => {
+      state.items = state.items.filter((_, index) => index !== action.payload);
+      AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state.items));
     },
-    clearCart(state) {
+    clearCart: (state) => {
       state.items = [];
+      AsyncStorage.removeItem(CART_STORAGE_KEY);
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(loadCartFromStorage.fulfilled, (state, action) => {
+      state.items = action.payload;
+    });
   },
 });
 

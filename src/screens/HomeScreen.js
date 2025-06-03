@@ -13,8 +13,9 @@ export default function HomeScreen({ navigation }) {
   }, []);
 
   const renderItem = ({ item }) => (
-    <ProductCard item={item} onPress={() => navigation.navigate('Details', { product: item })} />
+    <ProductCard product={item} onPress={() => navigation.navigate('Details', { product: item })} />
   );
+  
 
   return (
     <View style={styles.container}>

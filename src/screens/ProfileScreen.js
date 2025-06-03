@@ -12,14 +12,15 @@ export default function ProfileScreen() {
   const [location, setLocation] = useState(null);
 
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      dispatch(clearUser());
-      Alert.alert('Sesión cerrada', 'Volvé pronto 😄');
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo cerrar sesión');
-    }
-  };
+  try {
+    await signOut(auth);
+    dispatch(clearUser());
+    navigation.replace('Login');
+  } catch (error) {
+    Alert.alert('Error', error.message || 'No se pudo cerrar sesión');
+  }
+};
+
 
   useEffect(() => {
     (async () => {

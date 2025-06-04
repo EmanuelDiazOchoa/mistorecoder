@@ -4,23 +4,24 @@ import { useSelector, useDispatch } from 'react-redux';
 import { signOut } from 'firebase/auth';
 import * as Location from 'expo-location';
 import { auth } from '../service/firebase';
-import { clearUser } from '../features/auth/authSlice';
+import { clearUser } from '../features/auth/authSlice'; 
+import { useNavigation } from '@react-navigation/native'; 
 
 export default function ProfileScreen() {
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
+  const navigation = useNavigation(); 
   const [location, setLocation] = useState(null);
 
   const handleLogout = async () => {
-  try {
-    await signOut(auth);
-    dispatch(clearUser());
-    navigation.replace('Login');
-  } catch (error) {
-    Alert.alert('Error', error.message || 'No se pudo cerrar sesión');
-  }
-};
-
+    try {
+      await signOut(auth);
+      dispatch(clearUser());
+      navigation.replace('Login'); 
+    } catch (error) {
+      Alert.alert('Error', error.message || 'No se pudo cerrar sesión');
+    }
+  };
 
   useEffect(() => {
     (async () => {

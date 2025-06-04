@@ -1,3 +1,4 @@
+// src/navigation/BottomTabNavigator.js
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -8,6 +9,13 @@ import CartScreen from '../screens/CartScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
+
+const iconMap = {
+  Home: 'home',
+  Categories: 'category',
+  Cart: 'shopping-cart',
+  Profile: 'person',
+};
 
 const BottomTabNavigator = () => {
   return (
@@ -33,26 +41,9 @@ const BottomTabNavigator = () => {
           shadowRadius: 6,
           elevation: 10,
         },
-        tabBarIcon: ({ color }) => {
-          let iconName;
-          switch (route.name) {
-            case 'Home':
-              iconName = 'home';
-              break;
-            case 'Categories':
-              iconName = 'category';
-              break;
-            case 'Cart':
-              iconName = 'shopping-cart';
-              break;
-            case 'Profile':
-              iconName = 'person';
-              break;
-            default:
-              iconName = 'circle';
-          }
-          return <MaterialIcons name={iconName} size={26} color={color} />;
-        },
+        tabBarIcon: ({ color }) => (
+          <MaterialIcons name={iconMap[route.name]} size={26} color={color} />
+        ),
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Inicio' }} />

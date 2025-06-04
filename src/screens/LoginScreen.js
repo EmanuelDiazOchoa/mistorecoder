@@ -1,101 +1,101 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Alert } from 'react-native';
-import { useDispatch } from 'react-redux';
-import { signInWithEmailAndPassword, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, Pressable, Alert } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import { signOut } from 'firebase/auth';
+import * as Location from 'expo-location';
 import { auth } from '../service/firebase';
-import { setUser } from '../features/auth/authSlice';
+import { clearUser } from '../features/auth/authSlice'; 
+import { useNavigation } from '@react-navigation/native'; 
 
-WebBrowser.maybeCompleteAuthSession();
-
-export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export default function ProfileScreen() {
+  const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
+  const navigation = useNavigation(); 
+  const [location, setLocation] = useState(null);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.authentication;
-      const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential)
-        .then(userCredential => {
-          dispatch(setUser(userCredential.user));
-          navigation.replace('Main');
-        })
-        .catch(error => {
-          Alert.alert('Error con Google', error.message);
-        });
-    }
-  }, [response]);
-
-  const handleLogin = async () => {
+  const handleLogout = async () => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      dispatch(setUser(userCredential.user));
-      navigation.replace('Main');
+      await signOut(auth);
+      dispatch(clearUser());
+      navigation.replace('Login'); 
     } catch (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert('Error', error.message || 'No se pudo cerrar sesión');
     }
   };
 
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permiso denegado', 'No se pudo obtener la ubicación');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location.coords);
+    })();
+  }, []);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Iniciar sesión</Text>
-      <TextInput
-        placeholder="Correo electrónico"
-        onChangeText={setEmail}
-        value={email}
-        style={styles.input}
-        autoCapitalize="none"
+      <Image
+        source={require('../../assets/avatar.jpg')}
+        style={styles.avatar}
       />
-      <TextInput
-        placeholder="Contraseña"
-        onChangeText={setPassword}
-        value={password}
-        style={styles.input}
-        secureTextEntry
-      />
+      <Text style={styles.name}>Hola sea, Bienvenido 👋</Text>
+      <Text style={styles.email}>{user?.email || 'Sin email'}</Text>
 
-      <Pressable style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Ingresar</Text>
-      </Pressable>
+      {location && (
+        <Text style={styles.location}>
+          Ubicación: {location.latitude.toFixed(3)}, {location.longitude.toFixed(3)}
+        </Text>
+      )}
 
-      <Pressable style={styles.googleButton} onPress={() => promptAsync()}>
-        <Text style={styles.googleButtonText}>Ingresar con Google</Text>
-      </Pressable>
-
-      <Pressable onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>¿No tenés cuenta? Registrate</Text>
+      <Pressable style={styles.button} onPress={handleLogout}>
+        <Text style={styles.buttonText}>Cerrar sesión</Text>
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 25, backgroundColor: '#fff' },
-  title: { fontSize: 26, fontWeight: 'bold', marginBottom: 30, textAlign: 'center' },
-  input: {
-    height: 50, borderWidth: 1, borderColor: '#ccc', padding: 15,
-    marginBottom: 15, borderRadius: 8, backgroundColor: '#f9f9f9',
-  },
-  button: { backgroundColor: '#2f80ed', padding: 15, borderRadius: 8, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  googleButton: {
-    backgroundColor: '#db4437',
-    padding: 15,
-    borderRadius: 8,
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
     alignItems: 'center',
-    marginTop: 10,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
   },
-  googleButtonText: {
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 20,
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  email: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 10,
+  },
+  location: {
+    fontSize: 14,
+    color: '#888',
+    marginBottom: 30,
+  },
+  button: {
+    backgroundColor: '#e63946',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+  },
+  buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  link: { textAlign: 'center', marginTop: 15, color: '#2f80ed' },
 });

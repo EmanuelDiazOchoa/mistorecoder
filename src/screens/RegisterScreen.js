@@ -27,6 +27,10 @@ export default function RegisterScreen({ navigation }) {
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return false;
     }
+    if (password.length < 6) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      return false;
+    }
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Las contraseñas no coinciden');
       return false;
@@ -41,7 +45,7 @@ export default function RegisterScreen({ navigation }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       dispatch(setUser(userCredential.user));
       Alert.alert('Registro exitoso', '¡Bienvenido!');
-      navigation.navigate('Home');
+      navigation.replace('Main');
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {

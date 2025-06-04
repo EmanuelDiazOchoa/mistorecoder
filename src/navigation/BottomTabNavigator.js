@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
+
 import HomeScreen from '../screens/HomeScreen';
 import CategoriesScreen from '../screens/CategoriesScreen';
 import CartScreen from '../screens/CartScreen';
@@ -32,34 +33,32 @@ const BottomTabNavigator = () => {
           shadowRadius: 6,
           elevation: 10,
         },
-        tabBarIcon: ({ color, size }) => {
+        tabBarIcon: ({ color }) => {
           let iconName;
-
           switch (route.name) {
-            case 'Inicio':
+            case 'Home':
               iconName = 'home';
               break;
-            case 'Categorías':
+            case 'Categories':
               iconName = 'category';
               break;
-            case 'Carrito':
+            case 'Cart':
               iconName = 'shopping-cart';
               break;
-            case 'Perfil':
+            case 'Profile':
               iconName = 'person';
               break;
             default:
               iconName = 'circle';
           }
-
           return <MaterialIcons name={iconName} size={26} color={color} />;
         },
       })}
     >
-      <Tab.Screen name="Inicio" component={HomeScreen} />
-      <Tab.Screen name="Categorías" component={CategoriesScreen} />
-      <Tab.Screen name="Carrito" component={CartScreen} />
-      <Tab.Screen name="Perfil" component={ProfileScreen} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Inicio' }} />
+      <Tab.Screen name="Categories" component={CategoriesScreen} options={{ title: 'Categorías' }} />
+      <Tab.Screen name="Cart" component={CartScreen} options={{ title: 'Carrito' }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Perfil' }} />
     </Tab.Navigator>
   );
 };

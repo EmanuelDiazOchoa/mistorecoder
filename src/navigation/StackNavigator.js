@@ -1,5 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 import BottomTabNavigator from './BottomTabNavigator';
 import DetailsScreen from '../screens/DetailsScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -15,9 +16,9 @@ const StackNavigator = () => {
         component={BottomTabNavigator}
         options={{ headerShown: false }}
       />
-      <Stack.Screen name="Details" component={DetailsScreen} />
+      <Stack.Screen name="Details" component={DetailsScreen} options={{ title: 'Detalle del producto' }} />
       <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Registro" component={RegisterScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   );
 };

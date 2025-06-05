@@ -58,7 +58,7 @@ export default function RegisterScreen({ navigation }) {
       const { email: userEmail, uid } = userCredential.user;
       dispatch(setUser({ email: userEmail, uid }));
       Alert.alert('Registro exitoso', '¡Bienvenido!');
-      navigation.replace('Main');
+      navigation.replace('Home');
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {

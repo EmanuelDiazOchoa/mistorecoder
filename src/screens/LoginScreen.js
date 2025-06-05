@@ -1,59 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, Pressable, Alert } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { signOut } from 'firebase/auth';
-import * as Location from 'expo-location';
+import React, { useState } from 'react';
+import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useDispatch } from 'react-redux';
 import { auth } from '../service/firebase';
-import { clearUser } from '../features/auth/authSlice'; 
-import { useNavigation } from '@react-navigation/native'; 
+import { setUser } from '../features/auth/authSlice';
+import { useNavigation } from '@react-navigation/native';
 
-export default function ProfileScreen() {
-  const user = useSelector((state) => state.auth.user);
+export default function LoginScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const dispatch = useDispatch();
-  const navigation = useNavigation(); 
-  const [location, setLocation] = useState(null);
+  const navigation = useNavigation();
 
-  const handleLogout = async () => {
+  const handleLogin = async () => {
     try {
-      await signOut(auth);
-      dispatch(clearUser());
-      navigation.replace('Login'); 
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const { uid, email: userEmail } = userCredential.user;
+      
+      dispatch(setUser({ uid, email: userEmail }));
+
+      navigation.replace('Home');
     } catch (error) {
-      Alert.alert('Error', error.message || 'No se pudo cerrar sesión');
+      Alert.alert('Error', error.message || 'Error al iniciar sesión');
     }
   };
 
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permiso denegado', 'No se pudo obtener la ubicación');
-        return;
-      }
-
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location.coords);
-    })();
-  }, []);
-
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../../assets/avatar.jpg')}
-        style={styles.avatar}
+      <TextInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        style={styles.input}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
-      <Text style={styles.name}>Hola sea, Bienvenido 👋</Text>
-      <Text style={styles.email}>{user?.email || 'Sin email'}</Text>
-
-      {location && (
-        <Text style={styles.location}>
-          Ubicación: {location.latitude.toFixed(3)}, {location.longitude.toFixed(3)}
-        </Text>
-      )}
-
-      <Pressable style={styles.button} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Cerrar sesión</Text>
-      </Pressable>
+      <TextInput
+        placeholder="Contraseña"
+        value={password}
+        onChangeText={setPassword}
+        style={styles.input}
+        secureTextEntry
+      />
+      <Button title="Iniciar sesión" onPress={handleLogin} />
     </View>
   );
 }

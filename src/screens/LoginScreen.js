@@ -1,25 +1,22 @@
+// src/screens/LoginScreen.js
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useDispatch } from 'react-redux';
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';
-import { useNavigation } from '@react-navigation/native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
-  const navigation = useNavigation();
 
   const handleLogin = async () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const { uid, email: userEmail } = userCredential.user;
-      
       dispatch(setUser({ uid, email: userEmail }));
-
-      navigation.replace('Home');
+      // No navegues manualmente, el StackNavigator lo hace automáticamente
     } catch (error) {
       Alert.alert('Error', error.message || 'Error al iniciar sesión');
     }
@@ -48,43 +45,6 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 20,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  email: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 10,
-  },
-  location: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 30,
-  },
-  button: {
-    backgroundColor: '#e63946',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  container: { flex: 1, backgroundColor: '#fff', justifyContent: 'center', padding: 20 },
+  input: { height: 50, borderWidth: 1, borderColor: '#ccc', marginBottom: 15, paddingHorizontal: 10, borderRadius: 8 },
 });

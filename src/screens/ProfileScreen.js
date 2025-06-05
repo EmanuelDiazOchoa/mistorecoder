@@ -1,3 +1,4 @@
+// src/screens/ProfileScreen.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, Pressable, Alert } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
@@ -5,24 +6,16 @@ import { signOut } from 'firebase/auth';
 import * as Location from 'expo-location';
 import { auth } from '../service/firebase';
 import { clearUser } from '../features/auth/authSlice';
-import { useNavigation } from '@react-navigation/native';
 
 export default function ProfileScreen() {
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
-  const navigation = useNavigation();
   const [location, setLocation] = useState(null);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
       dispatch(clearUser());
-      setTimeout(() => {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Login' }],
-        });
-      }, 100);
     } catch (error) {
       Alert.alert('Error', error.message || 'No se pudo cerrar sesión');
     }
@@ -66,4 +59,3 @@ const styles = StyleSheet.create({
   button: { backgroundColor: '#e63946', paddingVertical: 12, paddingHorizontal: 30, borderRadius: 8 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });
-  

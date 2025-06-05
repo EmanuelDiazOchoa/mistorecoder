@@ -1,3 +1,4 @@
+// src/screens/RegisterScreen.js
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, Pressable, StyleSheet, Alert,
@@ -32,7 +33,6 @@ export default function RegisterScreen({ navigation }) {
         .then(userCredential => {
           const { email, uid } = userCredential.user;
           dispatch(setUser({ email, uid }));
-          navigation.replace('Main');
         })
         .catch(error => Alert.alert('Error con Google', error.message));
     }
@@ -57,8 +57,6 @@ export default function RegisterScreen({ navigation }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const { email: userEmail, uid } = userCredential.user;
       dispatch(setUser({ email: userEmail, uid }));
-      Alert.alert('Registro exitoso', '¡Bienvenido!');
-      navigation.replace('Home');
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {

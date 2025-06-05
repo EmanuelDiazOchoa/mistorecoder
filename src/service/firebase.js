@@ -1,14 +1,12 @@
-//@ts-ignore
-import { initializeApp, getApps } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
-  getAuth,
   initializeAuth,
   getReactNativePersistence,
-  inMemoryPersistence,
 } from 'firebase/auth';
 import { getDatabase } from 'firebase/database';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// ✅ Configuración de tu proyecto
 const firebaseConfig = {
   apiKey: "AIzaSyCt-HbGqJeWDNJjJ0XKc5qppkrcbBHpHUY",
   authDomain: "ecomersmovil.firebaseapp.com",
@@ -16,23 +14,19 @@ const firebaseConfig = {
   projectId: "ecomersmovil",
   storageBucket: "ecomersmovil.appspot.com",
   messagingSenderId: "392409110606",
-  appId: "1:392409110606:web:692dd3035725af10ba0b1f"
+  appId: "1:392409110606:web:692dd3035725af10ba0b1f",
 };
 
+// ✅ Inicializamos solo si no fue inicializado antes
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
+// ✅ Inicializamos auth con AsyncStorage para persistencia real
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 
-
-let auth;
-
-try {
-  auth = getAuth(app); 
-} catch (error) {
-  auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage),
-  });
-}
-
+// ✅ Base de datos Realtime Database
 const db = getDatabase(app);
 
-export { auth, db };
+// ✅ Exportamos todo
+export { app, auth, db };

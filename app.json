@@ -3,6 +3,7 @@
     "name": "mistore",
     "slug": "mistore",
     "version": "1.0.0",
+    "scheme": "mistore",              
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",

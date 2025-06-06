@@ -3,7 +3,7 @@
     "name": "mistore",
     "slug": "mistore",
     "version": "1.0.0",
-    "scheme": "mistore",              
+    "scheme": "mistore",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -17,11 +17,16 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.emanueldiazochoa.mistore",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.emanueldiazochoa.mistore"
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "NOTIFICATIONS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -32,7 +37,15 @@
       }
     },
     "plugins": [
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ffffff",
+          "sounds": ["default"]
+        }
+      ]
     ]
   }
 }

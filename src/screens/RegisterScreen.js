@@ -1,4 +1,3 @@
-// src/screens/RegisterScreen.js
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, Pressable, StyleSheet, Alert,
@@ -8,13 +7,15 @@ import { useDispatch } from 'react-redux';
 import { createUserWithEmailAndPassword, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import { useNavigation } from '@react-navigation/native'; 
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';
 
 WebBrowser.maybeCompleteAuthSession();
 
-export default function RegisterScreen({ navigation }) {
+export default function RegisterScreen() {
   const dispatch = useDispatch();
+  const navigation = useNavigation(); 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -33,6 +34,7 @@ export default function RegisterScreen({ navigation }) {
         .then(userCredential => {
           const { email, uid } = userCredential.user;
           dispatch(setUser({ email, uid }));
+          navigation.replace('Main'); 
         })
         .catch(error => Alert.alert('Error con Google', error.message));
     }
@@ -57,6 +59,7 @@ export default function RegisterScreen({ navigation }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const { email: userEmail, uid } = userCredential.user;
       dispatch(setUser({ email: userEmail, uid }));
+      navigation.replace('Main'); 
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {

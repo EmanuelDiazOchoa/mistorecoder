@@ -1,21 +1,26 @@
-// src/screens/ProfileScreen.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, Pressable, Alert } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { signOut } from 'firebase/auth';
 import * as Location from 'expo-location';
+import { useNavigation } from '@react-navigation/native';
 import { auth } from '../service/firebase';
 import { clearUser } from '../features/auth/authSlice';
 
 export default function ProfileScreen() {
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const [location, setLocation] = useState(null);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
       dispatch(clearUser());
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Register' }], 
+      });
     } catch (error) {
       Alert.alert('Error', error.message || 'No se pudo cerrar sesión');
     }

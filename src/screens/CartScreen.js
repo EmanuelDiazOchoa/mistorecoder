@@ -12,7 +12,7 @@ export default function CartScreen() {
   };
 
   const handleClearCart = () => {
-    Alert.alert('Vaciar carrito', '¿Estás seguro?', [
+    Alert.alert('Vaciar carrito', '¿Estás seguro que deseas eliminar todo?', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Sí', onPress: () => dispatch(clearCart()) },
     ]);
@@ -22,31 +22,33 @@ export default function CartScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🛒 Tu carrito</Text>
+      <Text style={styles.title}>🛍️ Carrito de Compras</Text>
 
       {cartItems.length === 0 ? (
-        <Text style={styles.empty}>El carrito está vacío.</Text>
+        <Text style={styles.empty}>Tu carrito está vacío. Agrega productos desde el inicio.</Text>
       ) : (
         <>
           <FlatList
             data={cartItems}
             keyExtractor={(_, index) => index.toString()}
             renderItem={({ item, index }) => (
-              <View style={styles.item}>
+              <View style={styles.itemContainer}>
                 <View>
-                  <Text style={styles.itemText}>{item.name}</Text>
-                  <Text style={styles.itemPrice}>${item.price}</Text>
+                  <Text style={styles.itemName}>{item.name}</Text>
+                  <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
                 </View>
-                <Pressable onPress={() => handleRemove(index)}>
-                  <Text style={styles.remove}>Eliminar</Text>
+                <Pressable onPress={() => handleRemove(index)} style={styles.removeButton}>
+                  <Text style={styles.removeText}>Eliminar</Text>
                 </Pressable>
               </View>
             )}
           />
-          <Text style={styles.total}>Total: ${total.toFixed(2)}</Text>
-          <Pressable style={styles.clearButton} onPress={handleClearCart}>
-            <Text style={styles.clearButtonText}>Vaciar carrito</Text>
-          </Pressable>
+          <View style={styles.footer}>
+            <Text style={styles.total}>Total: ${total.toFixed(2)}</Text>
+            <Pressable style={styles.clearButton} onPress={handleClearCart}>
+              <Text style={styles.clearButtonText}>Vaciar carrito</Text>
+            </Pressable>
+          </View>
         </>
       )}
     </View>
@@ -54,32 +56,76 @@ export default function CartScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, color: '#2f80ed', textAlign: 'center' },
-  empty: { fontSize: 16, color: '#666', textAlign: 'center', marginTop: 50 },
-  item: {
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#2f80ed',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  empty: {
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 60,
+    paddingHorizontal: 10,
+  },
+  itemContainer: {
+    backgroundColor: '#f2f6fc',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
   },
-  itemText: { fontSize: 16, color: '#333' },
-  itemPrice: { fontSize: 16, fontWeight: '600', color: '#2f80ed' },
-  remove: { color: '#e63946', fontWeight: 'bold' },
+  itemName: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  itemPrice: {
+    fontSize: 15,
+    color: '#2f80ed',
+    fontWeight: 'bold',
+  },
+  removeButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: '#ffe5e5',
+    borderRadius: 6,
+  },
+  removeText: {
+    color: '#e63946',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  footer: {
+    marginTop: 30,
+    alignItems: 'center',
+  },
   total: {
     fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'right',
-    marginTop: 20,
-    color: '#333',
+    fontWeight: '700',
+    marginBottom: 15,
+    color: '#2f80ed',
   },
   clearButton: {
     backgroundColor: '#e63946',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 10,
   },
   clearButtonText: {
     color: '#fff',

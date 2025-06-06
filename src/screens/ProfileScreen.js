@@ -19,7 +19,7 @@ export default function ProfileScreen() {
       dispatch(clearUser());
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Register' }], 
+        routes: [{ name: 'Login' }],
       });
     } catch (error) {
       Alert.alert('Error', error.message || 'No se pudo cerrar sesión');

@@ -7,6 +7,7 @@ import { useDispatch } from 'react-redux';
 import { createUserWithEmailAndPassword, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import * as Notifications from 'expo-notifications';
 import { useNavigation } from '@react-navigation/native'; 
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';
@@ -34,11 +35,20 @@ export default function RegisterScreen() {
         .then(userCredential => {
           const { email, uid } = userCredential.user;
           dispatch(setUser({ email, uid }));
-          navigation.replace('Main'); 
+          navigation.replace('Main');
         })
         .catch(error => Alert.alert('Error con Google', error.message));
     }
   }, [response]);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permiso denegado', 'No se otorgaron permisos para notificaciones');
+      }
+    })();
+  }, []);
 
   const validateForm = () => {
     if (!email || !password || !confirmPassword) {
@@ -59,7 +69,7 @@ export default function RegisterScreen() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const { email: userEmail, uid } = userCredential.user;
       dispatch(setUser({ email: userEmail, uid }));
-      navigation.replace('Main'); 
+      navigation.replace('Main');
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {

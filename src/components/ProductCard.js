@@ -9,6 +9,13 @@ const getProductImage = (name) => {
       return require('../../assets/Torta.webp');
     case 'budin':
       return require('../../assets/Budin.webp');
+      case 'galletitas':
+      return require('../../assets/Galletitas.jpg');
+      case 'donas':
+      return require('../../assets/dona.png');
+      case 'chocolate':
+      return require('../../assets/chocolate.webp');
+    
   }
 };
 

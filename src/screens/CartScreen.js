@@ -18,6 +18,11 @@ export default function CartScreen() {
     ]);
   };
 
+  const handlePurchase = () => {
+    Alert.alert('✅ ¡Compra exitosa!', 'Gracias por tu compra 🛍️');
+    dispatch(clearCart());
+  };
+
   const total = cartItems.reduce((sum, item) => sum + item.price, 0);
 
   return (
@@ -45,6 +50,11 @@ export default function CartScreen() {
           />
           <View style={styles.footer}>
             <Text style={styles.total}>Total: ${total.toFixed(2)}</Text>
+
+            <Pressable style={styles.purchaseButton} onPress={handlePurchase}>
+              <Text style={styles.purchaseButtonText}>Finalizar compra</Text>
+            </Pressable>
+
             <Pressable style={styles.clearButton} onPress={handleClearCart}>
               <Text style={styles.clearButtonText}>Vaciar carrito</Text>
             </Pressable>
@@ -120,6 +130,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 15,
     color: '#2f80ed',
+  },
+  purchaseButton: {
+    backgroundColor: '#27ae60',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  purchaseButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   clearButton: {
     backgroundColor: '#e63946',

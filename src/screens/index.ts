@@ -1,0 +1,9 @@
+// Re-export screens (JS files) for easier imports
+export { default as HomeScreen } from './HomeScreen';
+export { default as DetailsScreen } from './DetailsScreen';
+export { default as CartScreen } from './CartScreen';
+export { default as LoginScreen } from './LoginScreen';
+export { default as RegisterScreen } from './RegisterScreen';
+export { default as ProfileScreen } from './ProfileScreen';
+export { default as CategoriesScreen } from './CategoriesScreen';
+export { default as CategoryProductsScreen } from './CategoryProductsScreen';

@@ -1,10 +1,10 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createAsyncThunk } from '@reduxjs/toolkit';
+import { Product, CartState } from '../types/models'; 
 
 const CART_STORAGE_KEY = 'cartItems';
 
-export const loadCartFromStorage = createAsyncThunk(
+export const loadCartFromStorage = createAsyncThunk<Product[]>(
   'cart/loadCartFromStorage',
   async () => {
     const stored = await AsyncStorage.getItem(CART_STORAGE_KEY);
@@ -12,18 +12,20 @@ export const loadCartFromStorage = createAsyncThunk(
   }
 );
 
+const initialState: CartState = {
+  items: [],
+  status: 'idle',
+};
+
 const cartSlice = createSlice({
   name: 'cart',
-  initialState: {
-    items: [],
-    status: 'idle',
-  },
+  initialState,
   reducers: {
-    addToCart: (state, action) => {
+    addToCart: (state, action: PayloadAction<Product>) => {
       state.items.push(action.payload);
       AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state.items));
     },
-    removeFromCart: (state, action) => {
+    removeFromCart: (state, action: PayloadAction<number>) => {
       state.items = state.items.filter((_, index) => index !== action.payload);
       AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state.items));
     },

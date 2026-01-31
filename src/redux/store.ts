@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
-import productsReducer from './productsSlice';
-import authReducer from '../features/auth/authSlice';
-import cartReducer from './cartSlice';
+import productsReducer from '@redux/productsSlice'; 
+import authReducer from '@features/auth/authSlice'; 
+import cartReducer from '@redux/cartSlice'; 
 
 export const store = configureStore({
   reducer: {
@@ -9,5 +9,11 @@ export const store = configureStore({
     auth: authReducer,
     cart: cartReducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
+  middleware: (getDefaultMiddleware) => 
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
 });
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

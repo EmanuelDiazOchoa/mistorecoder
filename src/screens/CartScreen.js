@@ -1,62 +1,108 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, Pressable, Alert } from 'react-native';
+import {
+  View, Text, FlatList, StyleSheet,
+  Pressable, Alert, StatusBar,
+} from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
+import { MaterialIcons } from '@expo/vector-icons';
 import { removeFromCart, clearCart } from '../redux/cartSlice';
+import { addOrder } from '../redux/ordersSlice';
+import { useTheme } from '../hooks/useTheme';
+import EmptyState from '../components/EmptyState';
 
 export default function CartScreen() {
   const dispatch = useDispatch();
+  const theme = useTheme();
   const cartItems = useSelector((state) => state.cart.items);
-
-  const handleRemove = (index) => {
-    dispatch(removeFromCart(index));
-  };
-
-  const handleClearCart = () => {
-    Alert.alert('Vaciar carrito', '¿Estás seguro que deseas eliminar todo?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Sí', onPress: () => dispatch(clearCart()) },
-    ]);
-  };
+  const total = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
 
   const handlePurchase = () => {
-    Alert.alert('✅ ¡Compra exitosa!', 'Gracias por tu compra 🛍️');
-    dispatch(clearCart());
+    Alert.alert(
+      '✅ Confirmar pedido',
+      `Total: $${total.toFixed(2)}\n¿Confirmás tu pedido?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Confirmar',
+          onPress: () => {
+            dispatch(addOrder({ items: cartItems, total }));
+            dispatch(clearCart());
+            Alert.alert('🎉 ¡Pedido realizado!', 'Podés verlo en tu historial de pedidos.');
+          },
+        },
+      ]
+    );
   };
 
-  const total = cartItems.reduce((sum, item) => sum + item.price, 0);
+  const renderItem = ({ item, index }) => (
+    <View style={[styles.item, { backgroundColor: theme.colors.card }, theme.shadows.sm]}>
+      <View style={[styles.itemIcon, { backgroundColor: theme.colors.surfaceAlt }]}>
+        <Text style={styles.itemEmoji}>🛍️</Text>
+      </View>
+      <View style={styles.itemInfo}>
+        <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.name}</Text>
+        <Text style={[styles.itemPrice, { color: theme.primary }]}>
+          ${item.price?.toFixed(2)}
+        </Text>
+      </View>
+      <Pressable
+        onPress={() => dispatch(removeFromCart(index))}
+        style={styles.removeBtn}
+        hitSlop={8}
+      >
+        <MaterialIcons name="delete-outline" size={22} color={theme.danger} />
+      </Pressable>
+    </View>
+  );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🛍️ Carrito de Compras</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
+
+      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+        <Text style={[styles.title, { color: theme.colors.text }]}>Carrito</Text>
+        {cartItems.length > 0 && (
+          <Pressable onPress={() => Alert.alert(
+            'Vaciar carrito',
+            '¿Eliminás todos los productos?',
+            [
+              { text: 'Cancelar', style: 'cancel' },
+              { text: 'Vaciar', style: 'destructive', onPress: () => dispatch(clearCart()) },
+            ]
+          )}>
+            <Text style={[styles.clearText, { color: theme.danger }]}>Vaciar</Text>
+          </Pressable>
+        )}
+      </View>
 
       {cartItems.length === 0 ? (
-        <Text style={styles.empty}>Tu carrito está vacío. Agrega productos desde el inicio.</Text>
+        <EmptyState
+          icon="shopping-cart"
+          title="Tu carrito está vacío"
+          subtitle="Explorá los productos y agregá tus favoritos"
+        />
       ) : (
         <>
           <FlatList
             data={cartItems}
-            keyExtractor={(_, index) => index.toString()}
-            renderItem={({ item, index }) => (
-              <View style={styles.itemContainer}>
-                <View>
-                  <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
-                </View>
-                <Pressable onPress={() => handleRemove(index)} style={styles.removeButton}>
-                  <Text style={styles.removeText}>Eliminar</Text>
-                </Pressable>
-              </View>
-            )}
+            keyExtractor={(_, i) => i.toString()}
+            renderItem={renderItem}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
           />
-          <View style={styles.footer}>
-            <Text style={styles.total}>Total: ${total.toFixed(2)}</Text>
-
-            <Pressable style={styles.purchaseButton} onPress={handlePurchase}>
-              <Text style={styles.purchaseButtonText}>Finalizar compra</Text>
-            </Pressable>
-
-            <Pressable style={styles.clearButton} onPress={handleClearCart}>
-              <Text style={styles.clearButtonText}>Vaciar carrito</Text>
+          <View style={[styles.footer, { backgroundColor: theme.colors.surface }, theme.shadows.lg]}>
+            <View style={styles.totalRow}>
+              <Text style={[styles.totalLabel, { color: theme.colors.textSecondary }]}>Total</Text>
+              <Text style={[styles.totalAmount, { color: theme.colors.text }]}>
+                ${total.toFixed(2)}
+              </Text>
+            </View>
+            <Pressable
+              style={[styles.buyBtn, { backgroundColor: theme.primary }]}
+              onPress={handlePurchase}
+            >
+              <Text style={styles.buyBtnText}>Finalizar pedido</Text>
+              <MaterialIcons name="arrow-forward" size={20} color="#fff" />
             </Pressable>
           </View>
         </>
@@ -66,92 +112,63 @@ export default function CartScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#2f80ed',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  empty: {
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
-    marginTop: 60,
-    paddingHorizontal: 10,
-  },
-  itemContainer: {
-    backgroundColor: '#f2f6fc',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 12,
+  container: { flex: 1 },
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.03,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
+    paddingTop: 56,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
   },
-  itemName: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  itemPrice: {
-    fontSize: 15,
-    color: '#2f80ed',
-    fontWeight: 'bold',
-  },
-  removeButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: '#ffe5e5',
-    borderRadius: 6,
-  },
-  removeText: {
-    color: '#e63946',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  footer: {
-    marginTop: 30,
+  title: { fontSize: 28, fontWeight: '800' },
+  clearText: { fontSize: 15, fontWeight: '600' },
+  list: { padding: 20, paddingBottom: 200 },
+  item: {
+    flexDirection: 'row',
     alignItems: 'center',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
   },
-  total: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 15,
-    color: '#2f80ed',
-  },
-  purchaseButton: {
-    backgroundColor: '#27ae60',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
+  itemIcon: {
+    width: 48,
+    height: 48,
     borderRadius: 10,
-    marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
   },
-  purchaseButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  itemEmoji: { fontSize: 22 },
+  itemInfo: { flex: 1 },
+  itemName: { fontSize: 15, fontWeight: '600', marginBottom: 4 },
+  itemPrice: { fontSize: 16, fontWeight: '700' },
+  removeBtn: { padding: 6 },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    paddingBottom: 40,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
-  clearButton: {
-    backgroundColor: '#e63946',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 10,
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  clearButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  totalLabel: { fontSize: 16 },
+  totalAmount: { fontSize: 28, fontWeight: '800' },
+  buyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 14,
   },
+  buyBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
 });

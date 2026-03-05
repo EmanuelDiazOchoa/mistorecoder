@@ -1,38 +1,37 @@
 import * as SQLite from 'expo-sqlite';
 
-const db = SQLite.openDatabase('session.db');
+let db;
 
-export const createSessionTable = () => {
-  db.transaction(tx => {
-    tx.executeSql(
-      'CREATE TABLE IF NOT EXISTS session (id INTEGER PRIMARY KEY NOT NULL, email TEXT, uid TEXT);'
-    );
-  });
+const getDb = async () => {
+  if (!db) {
+    db = await SQLite.openDatabaseAsync('session.db');
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS session (
+        id INTEGER PRIMARY KEY NOT NULL,
+        email TEXT,
+        uid TEXT
+      );
+    `);
+  }
+  return db;
 };
 
-export const saveSession = (email, uid) => {
-  db.transaction(tx => {
-    tx.executeSql('DELETE FROM session;'); 
-    tx.executeSql('INSERT INTO session (email, uid) VALUES (?, ?);', [email, uid]);
-  });
+export const saveSession = async (email, uid) => {
+  const database = await getDb();
+  await database.runAsync('DELETE FROM session;');
+  await database.runAsync(
+    'INSERT INTO session (email, uid) VALUES (?, ?);',
+    [email, uid]
+  );
 };
 
-export const getSession = (callback) => {
-  db.transaction(tx => {
-    tx.executeSql(
-      'SELECT * FROM session LIMIT 1;',
-      [],
-      (_, { rows }) => callback(rows._array[0]),
-      (_, error) => {
-        console.error('Error obteniendo sesión:', error);
-        return true;
-      }
-    );
-  });
+export const getSession = async () => {
+  const database = await getDb();
+  const result = await database.getFirstAsync('SELECT * FROM session LIMIT 1;');
+  return result || null;
 };
 
-export const clearSession = () => {
-  db.transaction(tx => {
-    tx.executeSql('DELETE FROM session;');
-  });
+export const clearSession = async () => {
+  const database = await getDb();
+  await database.runAsync('DELETE FROM session;');
 };

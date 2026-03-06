@@ -28,9 +28,11 @@ export default function LoginScreen() {
   const [mode, setMode] = useState('options');
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
-    webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
-  });
+  androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
+  webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
+},
+{ useProxy: true }
+);
 
   useEffect(() => {
     if (response?.type === 'success') {
@@ -84,7 +86,7 @@ export default function LoginScreen() {
 
             <Pressable
               style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed]}
-              onPress={() => promptAsync()}
+              onPress={() => promptAsync({ useProxy: true })}
               disabled={!request || googleLoading}
             >
               {googleLoading ? (

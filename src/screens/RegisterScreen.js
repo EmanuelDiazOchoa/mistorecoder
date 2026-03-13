@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, Pressable, StyleSheet,
-  Alert, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar,
+  Alert, ActivityIndicator, KeyboardAvoidingView,
+  Platform, StatusBar, Animated, Dimensions,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import {
@@ -17,6 +18,21 @@ import { setUser } from '../features/auth/authSlice';
 
 WebBrowser.maybeCompleteAuthSession();
 
+function Blob({ style, delay = 0 }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim, { toValue: 1, duration: 3200 + delay, useNativeDriver: true, delay }),
+        Animated.timing(anim, { toValue: 0, duration: 3200 + delay, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [0, -18] });
+  const scale = anim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
+  return <Animated.View style={[style, { transform: [{ translateY }, { scale }] }]} />;
+}
+
 export default function RegisterScreen() {
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -24,25 +40,36 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
-const [request, response, promptAsync] = Google.useAuthRequest({
-  androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
-  webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
-  redirectUri: 'https://auth.expo.io/@emanueldiazochoa/mistore',
-});
-{ useProxy: true }
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(40)).current;
 
-    
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
+    webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
+    redirectUri: 'https://auth.expo.io/@emanueldiazochoa/mistore',
+  });
+
   useEffect(() => {
     if (response?.type === 'success') {
       const { id_token } = response.authentication;
       const credential = GoogleAuthProvider.credential(id_token);
+      setGoogleLoading(true);
       signInWithCredential(auth, credential)
         .then(({ user }) => {
           dispatch(setUser({ email: user.email, uid: user.uid }));
           navigation.replace('Main');
         })
-        .catch((error) => Alert.alert('Error con Google', error.message));
+        .catch((error) => Alert.alert('Error con Google', error.message))
+        .finally(() => setGoogleLoading(false));
     }
   }, [response]);
 
@@ -80,103 +107,237 @@ const [request, response, promptAsync] = Google.useAuthRequest({
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.inner}>
-        <Text style={styles.logo}>🍞</Text>
-        <Text style={styles.title}>Crear cuenta</Text>
-        <Text style={styles.subtitle}>Registrate en Roma Store</Text>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.root}>
+      <StatusBar barStyle="light-content" />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Correo electrónico"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          onChangeText={setEmail}
-          value={email}
-          placeholderTextColor="#aaa"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña"
-          secureTextEntry
-          onChangeText={setPassword}
-          value={password}
-          placeholderTextColor="#aaa"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Confirmar contraseña"
-          secureTextEntry
-          onChangeText={setConfirmPassword}
-          value={confirmPassword}
-          placeholderTextColor="#aaa"
-        />
+      <View style={styles.bg} />
+      <Blob style={styles.blob1} delay={400} />
+      <Blob style={styles.blob2} delay={0} />
+      <Blob style={styles.blob3} delay={900} />
 
-        <Pressable style={styles.btn} onPress={handleRegister} disabled={loading}>
-          {loading
-            ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.btnText}>Registrarse</Text>
-          }
-        </Pressable>
+      <Animated.ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        style={{ opacity: fadeAnim }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero */}
+        <Animated.View style={[styles.hero, { transform: [{ translateY: slideAnim }] }]}>
+          <View style={styles.logoRing}>
+            <Text style={styles.logoEmoji}>🍞</Text>
+          </View>
+          <Text style={styles.heroTitle}>Roma Store</Text>
+          <Text style={styles.heroSub}>Creá tu cuenta gratis</Text>
+        </Animated.View>
 
-        <Pressable
-          style={styles.googleBtn}
-          onPress={() => promptAsync({ useProxy: true })}
-          disabled={!request}
-        >
-          <Text style={styles.googleBtnText}>🔑 Continuar con Google</Text>
-        </Pressable>
+        {/* Card */}
+        <Animated.View style={[styles.card, { transform: [{ translateY: slideAnim }] }]}>
+          <Text style={styles.cardTitle}>Crear cuenta</Text>
 
-        <Pressable onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.link}>¿Ya tenés cuenta? <Text style={styles.linkBold}>Iniciar sesión</Text></Text>
-        </Pressable>
-      </View>
+          {/* Google button — primary CTA */}
+          <Pressable
+            style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed]}
+            onPress={() => promptAsync({ useProxy: true })}
+            disabled={!request || googleLoading}
+          >
+            <View style={styles.googleIconWrap}>
+              <Text style={styles.googleG}>G</Text>
+            </View>
+            {googleLoading
+              ? <ActivityIndicator color="#1A1208" style={{ flex: 1 }} />
+              : <Text style={styles.googleBtnText}>Registrarse con Google</Text>
+            }
+          </Pressable>
+
+          <View style={styles.divRow}>
+            <View style={styles.divLine} />
+            <Text style={styles.divText}>o con email</Text>
+            <View style={styles.divLine} />
+          </View>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Correo electrónico"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            onChangeText={setEmail}
+            value={email}
+            placeholderTextColor="#9CA3AF"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Contraseña (mín. 6 caracteres)"
+            secureTextEntry
+            onChangeText={setPassword}
+            value={password}
+            placeholderTextColor="#9CA3AF"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirmar contraseña"
+            secureTextEntry
+            onChangeText={setConfirmPassword}
+            value={confirmPassword}
+            placeholderTextColor="#9CA3AF"
+          />
+
+          <Pressable
+            style={({ pressed }) => [styles.submitBtn, pressed && styles.pressed]}
+            onPress={handleRegister}
+            disabled={loading}
+          >
+            {loading
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={styles.submitBtnText}>Crear cuenta</Text>
+            }
+          </Pressable>
+
+          <Pressable onPress={() => navigation.navigate('Login')} style={styles.loginRow}>
+            <Text style={styles.loginText}>
+              ¿Ya tenés cuenta?{'  '}
+              <Text style={styles.loginLink}>Iniciá sesión</Text>
+            </Text>
+          </Pressable>
+        </Animated.View>
+
+        <Text style={styles.footer}>Al continuar, aceptás nuestros términos de uso</Text>
+      </Animated.ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAF8F5' },
-  inner: { flex: 1, justifyContent: 'center', padding: 28 },
-  logo: { fontSize: 48, textAlign: 'center', marginBottom: 12 },
-  title: { fontSize: 28, fontWeight: '800', textAlign: 'center', color: '#1A1208', marginBottom: 6 },
-  subtitle: { fontSize: 15, textAlign: 'center', color: '#A8998E', marginBottom: 28 },
+  root: { flex: 1 },
+
+  bg: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#0F0A1E',
+  },
+
+  blob1: {
+    position: 'absolute',
+    width: 260, height: 260, borderRadius: 130,
+    backgroundColor: '#7C3AED',
+    opacity: 0.22,
+    top: -40, right: -70,
+  },
+  blob2: {
+    position: 'absolute',
+    width: 200, height: 200, borderRadius: 100,
+    backgroundColor: '#E85D26',
+    opacity: 0.20,
+    top: 200, left: -60,
+  },
+  blob3: {
+    position: 'absolute',
+    width: 160, height: 160, borderRadius: 80,
+    backgroundColor: '#10B981',
+    opacity: 0.15,
+    bottom: 180, right: 10,
+  },
+
+  scroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 24,
+    paddingBottom: 40,
+  },
+
+  hero: { alignItems: 'center', marginBottom: 32 },
+  logoRing: {
+    width: 88, height: 88, borderRadius: 44,
+    backgroundColor: 'rgba(124,58,237,0.18)',
+    borderWidth: 2,
+    borderColor: 'rgba(124,58,237,0.45)',
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 14,
+  },
+  logoEmoji: { fontSize: 44 },
+  heroTitle: {
+    fontSize: 34, fontWeight: '900', color: '#FFFFFF',
+    letterSpacing: -0.5, marginBottom: 5,
+  },
+  heroSub: { fontSize: 14, color: 'rgba(255,255,255,0.5)' },
+
+  card: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 28,
+    padding: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  cardTitle: {
+    fontSize: 22, fontWeight: '800', color: '#FFFFFF',
+    marginBottom: 22, textAlign: 'center',
+  },
+
+  googleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  googleIconWrap: {
+    width: 30, height: 30, borderRadius: 15,
+    backgroundColor: '#4285F4',
+    alignItems: 'center', justifyContent: 'center',
+    marginRight: 14,
+  },
+  googleG: { color: '#fff', fontSize: 16, fontWeight: '900' },
+  googleBtnText: {
+    flex: 1, textAlign: 'center', marginRight: 30,
+    fontSize: 15, fontWeight: '700', color: '#1A1208',
+  },
+
+  divRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
+  divLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
+  divText: { color: 'rgba(255,255,255,0.3)', fontSize: 12 },
+
   input: {
     height: 52,
-    borderWidth: 1.5,
-    borderColor: '#E8E0D8',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    marginBottom: 14,
-    fontSize: 15,
-    backgroundColor: '#F5F0EB',
-    color: '#1A1208',
-  },
-  btn: {
-    height: 52,
-    backgroundColor: '#E85D26',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 14,
+    paddingHorizontal: 18,
     marginBottom: 12,
+    fontSize: 15,
+    color: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
   },
-  btnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  googleBtn: {
-    height: 52,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+
+  submitBtn: {
+    backgroundColor: '#7C3AED',
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#E8E0D8',
-    marginBottom: 20,
+    marginTop: 4,
+    marginBottom: 22,
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  googleBtnText: { fontSize: 15, fontWeight: '600', color: '#1A1208' },
-  link: { textAlign: 'center', color: '#A8998E', fontSize: 14 },
-  linkBold: { color: '#E85D26', fontWeight: '700' },
+  submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
+
+  pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
+
+  loginRow: { alignItems: 'center' },
+  loginText: { color: 'rgba(255,255,255,0.4)', fontSize: 14 },
+  loginLink: { color: '#E85D26', fontWeight: '800' },
+
+  footer: {
+    textAlign: 'center',
+    color: 'rgba(255,255,255,0.18)',
+    fontSize: 11,
+    marginTop: 24,
+  },
 });

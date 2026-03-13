@@ -1,21 +1,17 @@
-import React, { useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, StatusBar } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, FlatList, StyleSheet, StatusBar, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector, useDispatch } from 'react-redux';
 import { MaterialIcons } from '@expo/vector-icons';
 import { loadOrders } from '../redux/ordersSlice';
-import { useTheme } from '../hooks/useTheme';
-import EmptyState from '../components/EmptyState';
 
-export default function OrdersScreen() {
-  const theme = useTheme();
-  const dispatch = useDispatch();
-  const orders = useSelector((state) => state.orders.orders);
-
+function OrderCard({ item, index, total }) {
+  const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    AsyncStorage.getItem('orders').then((data) => {
-      if (data) dispatch(loadOrders(JSON.parse(data)));
-    });
+    Animated.spring(anim, {
+      toValue: 1, tension: 55, friction: 10,
+      delay: index * 100, useNativeDriver: true,
+    }).start();
   }, []);
 
   const formatDate = (iso) =>
@@ -24,67 +20,89 @@ export default function OrdersScreen() {
       hour: '2-digit', minute: '2-digit',
     });
 
-  const renderOrder = ({ item, index }) => (
-    <View style={[styles.card, { backgroundColor: theme.colors.card }, theme.shadows.sm]}>
-      <View style={styles.cardHeader}>
-        <View style={[styles.orderBadge, { backgroundColor: theme.colors.surfaceAlt }]}>
-          <MaterialIcons name="receipt-long" size={16} color={theme.primary} />
-          <Text style={[styles.orderId, { color: theme.colors.textSecondary }]}>
-            Pedido #{orders.length - index}
-          </Text>
-        </View>
-        <View style={styles.statusBadge}>
-          <Text style={[styles.statusText, { color: theme.success }]}>✓ Completado</Text>
-        </View>
-      </View>
-
-      <Text style={[styles.date, { color: theme.colors.textMuted }]}>
-        {formatDate(item.date)}
-      </Text>
-
-      <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
-
-      {item.items.map((prod, i) => (
-        <View key={i} style={styles.productRow}>
-          <Text style={[styles.productName, { color: theme.colors.textSecondary }]}>
-            • {prod.name}
-          </Text>
-          <Text style={[styles.productPrice, { color: theme.colors.text }]}>
-            ${prod.price?.toFixed(2)}
-          </Text>
-        </View>
-      ))}
-
-      <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
-
-      <View style={styles.totalRow}>
-        <Text style={[styles.totalLabel, { color: theme.colors.textSecondary }]}>
-          Total pagado
-        </Text>
-        <Text style={[styles.total, { color: theme.primary }]}>
-          ${item.total?.toFixed(2)}
-        </Text>
-      </View>
-    </View>
-  );
+  const orderNum = total - index;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
-      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Mis pedidos</Text>
+    <Animated.View style={[styles.card, {
+      opacity: anim,
+      transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+    }]}>
+      {/* Card header */}
+      <View style={styles.cardHeader}>
+        <View style={styles.orderNumWrap}>
+          <Text style={styles.orderNumLabel}>PEDIDO</Text>
+          <Text style={styles.orderNum}>#{orderNum}</Text>
+        </View>
+        <View style={styles.statusBadge}>
+          <View style={styles.statusDot} />
+          <Text style={styles.statusText}>Completado</Text>
+        </View>
       </View>
+
+      <Text style={styles.date}>{formatDate(item.date)}</Text>
+
+      {/* Items */}
+      <View style={styles.divider} />
+      {item.items.map((prod, i) => (
+        <View key={i} style={styles.productRow}>
+          <Text style={styles.productName}>• {prod.name}</Text>
+          <Text style={styles.productPrice}>${prod.price?.toFixed(2)}</Text>
+        </View>
+      ))}
+      <View style={styles.divider} />
+
+      {/* Total */}
+      <View style={styles.totalRow}>
+        <Text style={styles.totalLabel}>Total pagado</Text>
+        <Text style={styles.total}>${item.total?.toFixed(2)}</Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+export default function OrdersScreen() {
+  const dispatch = useDispatch();
+  const orders = useSelector((state) => state.orders.orders);
+
+  const titleAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    AsyncStorage.getItem('orders').then((data) => {
+      if (data) dispatch(loadOrders(JSON.parse(data)));
+    });
+    Animated.spring(titleAnim, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }).start();
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <View style={styles.bgGlow} />
+      <View style={styles.bgGlow2} />
+
+      <Animated.View style={[styles.header, {
+        opacity: titleAnim,
+        transform: [{ translateY: titleAnim.interpolate({ inputRange: [0, 1], outputRange: [-16, 0] }) }],
+      }]}>
+        <Text style={styles.title}>Mis pedidos</Text>
+        {orders.length > 0 && (
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>{orders.length}</Text>
+          </View>
+        )}
+      </Animated.View>
+
       {orders.length === 0 ? (
-        <EmptyState
-          icon="receipt-long"
-          title="Sin pedidos aún"
-          subtitle="Tus compras aparecerán acá una vez que finalices tu primer pedido"
-        />
+        <View style={styles.empty}>
+          <Text style={styles.emptyEmoji}>📦</Text>
+          <Text style={styles.emptyTitle}>Sin pedidos aún</Text>
+          <Text style={styles.emptySub}>Tus compras aparecerán acá cuando finalices tu primer pedido</Text>
+        </View>
       ) : (
         <FlatList
           data={orders}
           keyExtractor={(item) => item.id}
-          renderItem={renderOrder}
+          renderItem={({ item, index }) => (
+            <OrderCard item={item} index={index} total={orders.length} />
+          )}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
         />
@@ -94,48 +112,57 @@ export default function OrdersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: { paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20 },
-  title: { fontSize: 28, fontWeight: '800' },
-  list: { padding: 20, paddingBottom: 100 },
-  card: { borderRadius: 16, padding: 16, marginBottom: 16 },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+  container: { flex: 1, backgroundColor: '#0A0A0F' },
+  bgGlow: {
+    position: 'absolute', width: 250, height: 250, borderRadius: 125,
+    backgroundColor: '#7C3AED', opacity: 0.06, top: -50, right: -60,
   },
-  orderBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
+  bgGlow2: {
+    position: 'absolute', width: 200, height: 200, borderRadius: 100,
+    backgroundColor: '#E85D26', opacity: 0.05, bottom: 100, left: -40,
   },
-  orderId: { fontSize: 13, fontWeight: '600' },
+  header: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24,
+  },
+  title: { fontSize: 32, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 },
+  countBadge: {
+    backgroundColor: 'rgba(232,93,38,0.2)',
+    borderWidth: 1, borderColor: 'rgba(232,93,38,0.4)',
+    borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4,
+  },
+  countText: { color: '#E85D26', fontSize: 13, fontWeight: '800' },
+
+  list: { paddingHorizontal: 20, paddingBottom: 120 },
+
+  card: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 24, padding: 20, marginBottom: 16,
+  },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 },
+  orderNumWrap: {},
+  orderNumLabel: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.3)', letterSpacing: 1.5 },
+  orderNum: { fontSize: 22, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    backgroundColor: '#E8F8EE',
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: 'rgba(39,174,96,0.15)',
+    borderWidth: 1, borderColor: 'rgba(39,174,96,0.3)',
+    borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5,
   },
-  statusText: { fontSize: 12, fontWeight: '700' },
-  date: { fontSize: 12, marginBottom: 12 },
-  divider: { height: 1, marginVertical: 10 },
-  productRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 3,
-  },
-  productName: { fontSize: 14 },
-  productPrice: { fontSize: 14, fontWeight: '600' },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  totalLabel: { fontSize: 14 },
-  total: { fontSize: 18, fontWeight: '800' },
+  statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#27AE60' },
+  statusText: { fontSize: 12, fontWeight: '700', color: '#27AE60' },
+  date: { fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 14 },
+  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.07)', marginVertical: 12 },
+  productRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3 },
+  productName: { fontSize: 14, color: 'rgba(255,255,255,0.6)' },
+  productPrice: { fontSize: 14, fontWeight: '700', color: 'rgba(255,255,255,0.8)' },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  totalLabel: { fontSize: 13, color: 'rgba(255,255,255,0.4)' },
+  total: { fontSize: 22, fontWeight: '900', color: '#E85D26' },
+
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
+  emptyEmoji: { fontSize: 72, marginBottom: 16 },
+  emptyTitle: { fontSize: 20, fontWeight: '800', color: '#FFFFFF', marginBottom: 8 },
+  emptySub: { fontSize: 14, color: 'rgba(255,255,255,0.35)', textAlign: 'center', lineHeight: 20 },
 });

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View, Text, TextInput, StyleSheet, Pressable,
   Alert, ActivityIndicator, KeyboardAvoidingView,
-  Platform, StatusBar, ScrollView,
+  Platform, StatusBar, Animated,
 } from 'react-native';
 import {
   signInWithEmailAndPassword,
@@ -11,12 +11,31 @@ import {
 } from 'firebase/auth';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import { makeRedirectUri } from 'expo-auth-session';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';
 
 WebBrowser.maybeCompleteAuthSession();
+
+function Blob({ style, delay = 0 }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim, { toValue: 1, duration: 3200 + delay, useNativeDriver: true, delay }),
+        Animated.timing(anim, { toValue: 0, duration: 3200 + delay, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [0, -18] });
+  const scale = anim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
+  return <Animated.View style={[style, { transform: [{ translateY }, { scale }] }]} />;
+}
+
+// URI fijo que sabemos que está registrado en Google Cloud
+const REDIRECT_URI = 'https://auth.expo.io/@emanueldiazochoa/mistore';
 
 export default function LoginScreen() {
   const dispatch = useDispatch();
@@ -25,17 +44,34 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [mode, setMode] = useState('options');
+  const [showEmail, setShowEmail] = useState(false);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-  androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
-  webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
-  redirectUri: 'https://auth.expo.io/@emanueldiazochoa/mistore',
-});
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(40)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  const [request, response, promptAsync] = Google.useAuthRequest(
+    {
+      androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
+      webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
+      redirectUri: REDIRECT_URI,
+      scopes: ['profile', 'email'],
+    }
+  );
 
   useEffect(() => {
     if (response?.type === 'success') {
       const { id_token } = response.authentication;
+      if (!id_token) {
+        Alert.alert('Error', 'No se recibió token de Google');
+        return;
+      }
       const credential = GoogleAuthProvider.credential(id_token);
       setGoogleLoading(true);
       signInWithCredential(auth, credential)
@@ -43,16 +79,15 @@ export default function LoginScreen() {
           dispatch(setUser({ email: user.email, uid: user.uid }));
           navigation.replace('Main');
         })
-        .catch((e) => Alert.alert('Error', e.message))
+        .catch((e) => Alert.alert('Error Firebase', e.message))
         .finally(() => setGoogleLoading(false));
+    } else if (response?.type === 'error') {
+      Alert.alert('Error Google', response.error?.message || 'Error desconocido');
     }
   }, [response]);
 
   const handleEmailLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Completá todos los campos');
-      return;
-    }
+    if (!email || !password) { Alert.alert('Error', 'Completá todos los campos'); return; }
     setLoading(true);
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
@@ -66,180 +101,190 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <StatusBar barStyle="dark-content" />
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.root}>
+      <StatusBar barStyle="light-content" />
 
-        <View style={styles.hero}>
-          <Text style={styles.heroEmoji}>🍞</Text>
+      <View style={styles.bg} />
+      <Blob style={styles.blob1} delay={0} />
+      <Blob style={styles.blob2} delay={600} />
+      <Blob style={styles.blob3} delay={1200} />
+
+      <Animated.ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        style={{ opacity: fadeAnim }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View style={[styles.hero, { transform: [{ translateY: slideAnim }] }]}>
+          <View style={styles.logoRing}>
+            <Text style={styles.logoEmoji}>🍞</Text>
+          </View>
           <Text style={styles.heroTitle}>Roma Store</Text>
-          <Text style={styles.heroSubtitle}>Tu panadería artesanal favorita</Text>
-        </View>
+          <Text style={styles.heroSub}>Tu panadería artesanal favorita</Text>
+        </Animated.View>
 
-        {mode === 'options' ? (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Ingresar</Text>
+        <Animated.View style={[styles.card, { transform: [{ translateY: slideAnim }] }]}>
+          {!showEmail ? (
+            <>
+              <Text style={styles.cardTitle}>Bienvenido 👋</Text>
+              <Text style={styles.cardSub}>Ingresá con tu cuenta de Google</Text>
 
-            <Pressable
-              style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed]}
-              onPress={() => promptAsync({ useProxy: true })}
-              disabled={!request || googleLoading}
-            >
-              {googleLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <Text style={styles.googleIcon}>G</Text>
-                  <Text style={styles.googleBtnText}>Continuar con Google</Text>
-                </>
-              )}
-            </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed]}
+                onPress={() => promptAsync({ useProxy: true })}
+                disabled={!request || googleLoading}
+              >
+                <View style={styles.googleIconWrap}>
+                  <Text style={styles.googleG}>G</Text>
+                </View>
+                {googleLoading
+                  ? <ActivityIndicator color="#1A1208" style={{ flex: 1 }} />
+                  : <Text style={styles.googleBtnText}>Continuar con Google</Text>
+                }
+              </Pressable>
 
-            <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>o</Text>
-              <View style={styles.dividerLine} />
-            </View>
+              <View style={styles.divRow}>
+                <View style={styles.divLine} />
+                <Text style={styles.divText}>o</Text>
+                <View style={styles.divLine} />
+              </View>
 
-            <Pressable
-              style={({ pressed }) => [styles.emailBtn, pressed && styles.pressed]}
-              onPress={() => setMode('email')}
-            >
-              <Text style={styles.emailBtnText}>Ingresar con email</Text>
-            </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.emailBtn, pressed && styles.emailPressed]}
+                onPress={() => setShowEmail(true)}
+              >
+                <Text style={styles.emailBtnText}>Ingresar con email</Text>
+              </Pressable>
 
-            <Pressable onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.registerLink}>
-                ¿No tenés cuenta? <Text style={styles.registerLinkBold}>Registrate</Text>
-              </Text>
-            </Pressable>
-          </View>
-        ) : (
-          <View style={styles.card}>
-            <Pressable onPress={() => setMode('options')} style={styles.backBtn}>
-              <Text style={styles.backBtnText}>← Volver</Text>
-            </Pressable>
+              <Pressable onPress={() => navigation.navigate('Register')} style={styles.registerRow}>
+                <Text style={styles.registerText}>
+                  ¿No tenés cuenta?{'  '}
+                  <Text style={styles.registerLink}>Registrate gratis</Text>
+                </Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Pressable onPress={() => setShowEmail(false)} style={styles.backRow}>
+                <Text style={styles.backText}>← Volver</Text>
+              </Pressable>
+              <Text style={styles.cardTitle}>Con tu email</Text>
 
-            <Text style={styles.cardTitle}>Con tu email</Text>
+              <TextInput
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={styles.input}
+                placeholderTextColor="#9CA3AF"
+              />
+              <TextInput
+                placeholder="Contraseña"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                style={styles.input}
+                placeholderTextColor="#9CA3AF"
+              />
 
-            <TextInput
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={styles.input}
-              placeholderTextColor="#A8998E"
-            />
-            <TextInput
-              placeholder="Contraseña"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              style={styles.input}
-              placeholderTextColor="#A8998E"
-            />
+              <Pressable
+                style={({ pressed }) => [styles.submitBtn, pressed && styles.pressed]}
+                onPress={handleEmailLogin}
+                disabled={loading}
+              >
+                {loading
+                  ? <ActivityIndicator color="#fff" />
+                  : <Text style={styles.submitBtnText}>Iniciar sesión</Text>
+                }
+              </Pressable>
 
-            <Pressable
-              style={({ pressed }) => [styles.submitBtn, pressed && styles.pressed]}
-              onPress={handleEmailLogin}
-              disabled={loading}
-            >
-              {loading
-                ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.submitBtnText}>Iniciar sesión</Text>
-              }
-            </Pressable>
+              <Pressable onPress={() => navigation.navigate('Register')} style={styles.registerRow}>
+                <Text style={styles.registerText}>
+                  ¿No tenés cuenta?{'  '}
+                  <Text style={styles.registerLink}>Registrate gratis</Text>
+                </Text>
+              </Pressable>
+            </>
+          )}
+        </Animated.View>
 
-            <Pressable onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.registerLink}>
-                ¿No tenés cuenta? <Text style={styles.registerLinkBold}>Registrate</Text>
-              </Text>
-            </Pressable>
-          </View>
-        )}
-      </ScrollView>
+        <Text style={styles.footer}>Al continuar, aceptás nuestros términos de uso</Text>
+      </Animated.ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAF8F5' },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  hero: { alignItems: 'center', marginBottom: 32 },
-  heroEmoji: { fontSize: 64, marginBottom: 12 },
-  heroTitle: { fontSize: 32, fontWeight: '800', color: '#1A1208', marginBottom: 4 },
-  heroSubtitle: { fontSize: 15, color: '#A8998E' },
+  root: { flex: 1 },
+  bg: { ...StyleSheet.absoluteFillObject, backgroundColor: '#0F0A1E' },
+  blob1: {
+    position: 'absolute', width: 280, height: 280, borderRadius: 140,
+    backgroundColor: '#E85D26', opacity: 0.25, top: -60, left: -80,
+  },
+  blob2: {
+    position: 'absolute', width: 220, height: 220, borderRadius: 110,
+    backgroundColor: '#7C3AED', opacity: 0.20, top: 120, right: -60,
+  },
+  blob3: {
+    position: 'absolute', width: 180, height: 180, borderRadius: 90,
+    backgroundColor: '#F59E0B', opacity: 0.15, bottom: 200, left: 20,
+  },
+  scroll: { flexGrow: 1, justifyContent: 'center', padding: 24, paddingBottom: 40 },
+  hero: { alignItems: 'center', marginBottom: 36 },
+  logoRing: {
+    width: 96, height: 96, borderRadius: 48,
+    backgroundColor: 'rgba(232,93,38,0.18)',
+    borderWidth: 2, borderColor: 'rgba(232,93,38,0.5)',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+  },
+  logoEmoji: { fontSize: 48 },
+  heroTitle: { fontSize: 36, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 6 },
+  heroSub: { fontSize: 15, color: 'rgba(255,255,255,0.55)' },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
+    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 28, padding: 28,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
   },
-  cardTitle: { fontSize: 20, fontWeight: '700', color: '#1A1208', marginBottom: 20, textAlign: 'center' },
+  cardTitle: { fontSize: 24, fontWeight: '800', color: '#FFFFFF', marginBottom: 6, textAlign: 'center' },
+  cardSub: { fontSize: 14, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginBottom: 28 },
   googleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    backgroundColor: '#E85D26',
-    paddingVertical: 16,
-    borderRadius: 14,
-    marginBottom: 16,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
+    borderRadius: 16, paddingVertical: 16, paddingHorizontal: 20, marginBottom: 20,
+    shadowColor: '#E85D26', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
   },
-  googleIcon: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#fff',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    textAlign: 'center',
-    lineHeight: 28,
+  googleIconWrap: {
+    width: 32, height: 32, borderRadius: 16, backgroundColor: '#4285F4',
+    alignItems: 'center', justifyContent: 'center', marginRight: 14,
   },
-  googleBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#E8E0D8' },
-  dividerText: { color: '#A8998E', fontSize: 14 },
+  googleG: { color: '#fff', fontSize: 17, fontWeight: '900' },
+  googleBtnText: { flex: 1, fontSize: 16, fontWeight: '700', color: '#1A1208', textAlign: 'center', marginRight: 32 },
+  divRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
+  divLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.12)' },
+  divText: { color: 'rgba(255,255,255,0.35)', fontSize: 13 },
   emailBtn: {
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: '#E8E0D8',
-    alignItems: 'center',
-    marginBottom: 20,
+    paddingVertical: 15, borderRadius: 16, borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center', marginBottom: 24,
   },
-  emailBtnText: { fontSize: 15, fontWeight: '600', color: '#6B5E52' },
-  backBtn: { marginBottom: 16 },
-  backBtnText: { color: '#E85D26', fontSize: 15, fontWeight: '600' },
+  emailPressed: { backgroundColor: 'rgba(255,255,255,0.06)' },
+  emailBtnText: { fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.8)' },
   input: {
-    height: 52,
-    borderWidth: 1.5,
-    borderColor: '#E8E0D8',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    marginBottom: 14,
-    fontSize: 15,
-    backgroundColor: '#F5F0EB',
-    color: '#1A1208',
+    height: 54, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14,
+    paddingHorizontal: 18, marginBottom: 14, fontSize: 15, color: '#FFFFFF',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
   },
   submitBtn: {
-    backgroundColor: '#E85D26',
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-    marginBottom: 20,
+    backgroundColor: '#E85D26', paddingVertical: 16, borderRadius: 16,
+    alignItems: 'center', marginBottom: 24,
+    shadowColor: '#E85D26', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4, shadowRadius: 12, elevation: 6,
   },
-  submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  registerLink: { textAlign: 'center', color: '#A8998E', fontSize: 14 },
-  registerLinkBold: { color: '#E85D26', fontWeight: '700' },
-  pressed: { opacity: 0.85 },
+  submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  pressed: { opacity: 0.82 },
+  backRow: { marginBottom: 16 },
+  backText: { color: '#E85D26', fontSize: 15, fontWeight: '700' },
+  registerRow: { alignItems: 'center' },
+  registerText: { color: 'rgba(255,255,255,0.45)', fontSize: 14 },
+  registerLink: { color: '#E85D26', fontWeight: '800' },
+  footer: { textAlign: 'center', color: 'rgba(255,255,255,0.2)', fontSize: 11, marginTop: 24 },
 });

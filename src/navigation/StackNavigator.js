@@ -5,7 +5,7 @@ import BottomTabNavigator from './BottomTabNavigator';
 import DetailsScreen from '../screens/DetailsScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
-import CategoryProductsScreen from '../screens/CategoryProductsScreen'; // ⬅️ Importamos la nueva pantalla
+import CategoryProductsScreen from '../screens/CategoryProductsScreen'; 
 
 const Stack = createNativeStackNavigator();
 
@@ -20,7 +20,7 @@ const StackNavigator = () => {
         name="Details" 
         component={DetailsScreen} 
         options={{ 
-          headerShown: true,
+          headerShown: false,
           title: 'Detalle del producto',
           headerBackTitleVisible: false,
         }} 
@@ -40,5 +40,3 @@ const StackNavigator = () => {
 };
 
 export default StackNavigator;
-
-

@@ -19,17 +19,17 @@ export const palette = {
   },
 
   dark: {
-    background: '#12100E',
-    surface: '#1E1A17',
-    surfaceAlt: '#2A2420',
-    border: '#3A3028',
-    text: '#F5F0EB',
-    textSecondary: '#B5A99F',
-    textMuted: '#6B5E52',
-    tabBar: '#1A1510',
-    card: '#1E1A17',
-    input: '#2A2420',
-  },
+  background: '#0A0A0F',   
+  surface: '#111018',      
+  surfaceAlt: '#1A1A2E',   
+  border: 'rgba(255,255,255,0.08)',  
+  text: '#FFFFFF',
+  textSecondary: 'rgba(255,255,255,0.55)',
+  textMuted: 'rgba(255,255,255,0.3)',
+  tabBar: '#111018',
+  card: 'rgba(255,255,255,0.05)',
+  input: 'rgba(255,255,255,0.08)',
+},
 };
 
 export const shadows = {
@@ -55,6 +55,7 @@ export const shadows = {
     elevation: 8,
   },
 };
+
 
 export const getTheme = (isDark) => ({
   ...palette,

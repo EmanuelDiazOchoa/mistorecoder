@@ -7,7 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -36,11 +35,11 @@
         "projectId": "8187eb6f-8363-4452-bbfa-77bbd0c85bf9"
       }
     },
-    "plugins": [
+      "plugins": [
       "expo-dev-client",
       "expo-sqlite",
       [
-        
+        "expo-notifications",
         {
           "icon": "./assets/icon.png",
           "color": "#ffffff"

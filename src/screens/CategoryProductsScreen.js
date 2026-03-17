@@ -17,16 +17,40 @@ const CATEGORY_COLORS = {
   chocolate:  '#92400E',
 };
 
+
+function AnimatedProductItem({ item, index, onPress }) {
+  const anim = useRef(new Animated.Value(0)).current;   
+
+  useEffect(() => {
+    Animated.spring(anim, {
+      toValue: 1,
+      tension: 55,
+      friction: 10,
+      delay: index * 70,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  return (
+    <Animated.View style={{
+      opacity: anim,
+      transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+    }}>
+      <ProductCard product={item} onPress={onPress} />
+    </Animated.View>
+  );
+}
+
 export default function CategoryProductsScreen({ route, navigation }) {
   const { category } = route.params;
-  const products = useSelector((state) => state.products.products);
+  const products     = useSelector((state) => state.products.products);
 
   const filtered = products.filter((item) =>
     item.name?.toLowerCase().includes(category)
   );
 
   const catInfo = CATEGORIES.find((c) => c.key === category);
-  const color = CATEGORY_COLORS[category] || '#E85D26';
+  const color   = CATEGORY_COLORS[category] || '#E85D26';
 
   const headerAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -38,10 +62,8 @@ export default function CategoryProductsScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-
       <View style={[styles.bgGlow, { backgroundColor: color }]} />
 
-      {/* Header custom dark */}
       <Animated.View style={[styles.header, {
         opacity: headerAnim,
         transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-16, 0] }) }],
@@ -62,25 +84,14 @@ export default function CategoryProductsScreen({ route, navigation }) {
 
       <FlatList
         data={filtered}
-        keyExtractor={(_, i) => i.toString()}
-        renderItem={({ item, index }) => {
-          const anim = new Animated.Value(0);
-          Animated.spring(anim, {
-            toValue: 1, tension: 55, friction: 10,
-            delay: index * 70, useNativeDriver: true,
-          }).start();
-          return (
-            <Animated.View style={{
-              opacity: anim,
-              transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
-            }}>
-              <ProductCard
-                product={item}
-                onPress={() => navigation.navigate('Details', { product: item })}
-              />
-            </Animated.View>
-          );
-        }}
+        keyExtractor={(item) => item.id?.toString()}    
+        renderItem={({ item, index }) => (
+          <AnimatedProductItem
+            item={item}
+            index={index}
+            onPress={() => navigation.navigate('Details', { product: item })}
+          />
+        )}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
@@ -112,12 +123,12 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   headerCenter: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  headerEmoji: { fontSize: 32 },
-  headerTitle: { fontSize: 22, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.3 },
-  headerSub: { fontSize: 13, fontWeight: '600', marginTop: 2 },
-  list: { paddingHorizontal: 20, paddingBottom: 120 },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingHorizontal: 40 },
-  emptyEmoji: { fontSize: 56, marginBottom: 12 },
-  emptyTitle: { fontSize: 18, fontWeight: '800', color: '#FFFFFF', marginBottom: 6 },
-  emptySub: { fontSize: 14, color: 'rgba(255,255,255,0.35)', textAlign: 'center' },
+  headerEmoji:  { fontSize: 32 },
+  headerTitle:  { fontSize: 22, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.3 },
+  headerSub:    { fontSize: 13, fontWeight: '600', marginTop: 2 },
+  list:         { paddingHorizontal: 20, paddingBottom: 120 },
+  empty:        { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingHorizontal: 40 },
+  emptyEmoji:   { fontSize: 56, marginBottom: 12 },
+  emptyTitle:   { fontSize: 18, fontWeight: '800', color: '#FFFFFF', marginBottom: 6 },
+  emptySub:     { fontSize: 14, color: 'rgba(255,255,255,0.35)', textAlign: 'center' },
 });

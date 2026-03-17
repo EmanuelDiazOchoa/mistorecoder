@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, Pressable, StyleSheet,
   Alert, ActivityIndicator, KeyboardAvoidingView,
-  Platform, StatusBar, Animated, Dimensions,
+  Platform, StatusBar, Animated,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import {
@@ -15,6 +15,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';
+import { saveSession } from '../service/sessionStorage';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -64,7 +65,8 @@ export default function RegisterScreen() {
       const credential = GoogleAuthProvider.credential(id_token);
       setGoogleLoading(true);
       signInWithCredential(auth, credential)
-        .then(({ user }) => {
+        .then(async ({ user }) => {
+          await saveSession(user.email, user.uid);
           dispatch(setUser({ email: user.email, uid: user.uid }));
           navigation.replace('Main');
         })
@@ -94,6 +96,7 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      await saveSession(user.email, user.uid);
       dispatch(setUser({ email: user.email, uid: user.uid }));
       navigation.replace('Main');
     } catch (error) {
@@ -121,7 +124,6 @@ export default function RegisterScreen() {
         style={{ opacity: fadeAnim }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
         <Animated.View style={[styles.hero, { transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.logoRing}>
             <Text style={styles.logoEmoji}>🍞</Text>
@@ -130,11 +132,9 @@ export default function RegisterScreen() {
           <Text style={styles.heroSub}>Creá tu cuenta gratis</Text>
         </Animated.View>
 
-        {/* Card */}
         <Animated.View style={[styles.card, { transform: [{ translateY: slideAnim }] }]}>
           <Text style={styles.cardTitle}>Crear cuenta</Text>
 
-          {/* Google button — primary CTA */}
           <Pressable
             style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed]}
             onPress={() => promptAsync({ useProxy: true })}
@@ -208,136 +208,65 @@ export default function RegisterScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-
-  bg: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#0F0A1E',
-  },
-
+  bg: { ...StyleSheet.absoluteFillObject, backgroundColor: '#0F0A1E' },
   blob1: {
-    position: 'absolute',
-    width: 260, height: 260, borderRadius: 130,
-    backgroundColor: '#7C3AED',
-    opacity: 0.22,
-    top: -40, right: -70,
+    position: 'absolute', width: 260, height: 260, borderRadius: 130,
+    backgroundColor: '#7C3AED', opacity: 0.22, top: -40, right: -70,
   },
   blob2: {
-    position: 'absolute',
-    width: 200, height: 200, borderRadius: 100,
-    backgroundColor: '#E85D26',
-    opacity: 0.20,
-    top: 200, left: -60,
+    position: 'absolute', width: 200, height: 200, borderRadius: 100,
+    backgroundColor: '#E85D26', opacity: 0.20, top: 200, left: -60,
   },
   blob3: {
-    position: 'absolute',
-    width: 160, height: 160, borderRadius: 80,
-    backgroundColor: '#10B981',
-    opacity: 0.15,
-    bottom: 180, right: 10,
+    position: 'absolute', width: 160, height: 160, borderRadius: 80,
+    backgroundColor: '#10B981', opacity: 0.15, bottom: 180, right: 10,
   },
-
-  scroll: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 24,
-    paddingBottom: 40,
-  },
-
+  scroll: { flexGrow: 1, justifyContent: 'center', padding: 24, paddingBottom: 40 },
   hero: { alignItems: 'center', marginBottom: 32 },
   logoRing: {
     width: 88, height: 88, borderRadius: 44,
     backgroundColor: 'rgba(124,58,237,0.18)',
-    borderWidth: 2,
-    borderColor: 'rgba(124,58,237,0.45)',
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: 14,
+    borderWidth: 2, borderColor: 'rgba(124,58,237,0.45)',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 14,
   },
   logoEmoji: { fontSize: 44 },
-  heroTitle: {
-    fontSize: 34, fontWeight: '900', color: '#FFFFFF',
-    letterSpacing: -0.5, marginBottom: 5,
-  },
+  heroTitle: { fontSize: 34, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 5 },
   heroSub: { fontSize: 14, color: 'rgba(255,255,255,0.5)' },
-
   card: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 28,
-    padding: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 28, padding: 28,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
   },
-  cardTitle: {
-    fontSize: 22, fontWeight: '800', color: '#FFFFFF',
-    marginBottom: 22, textAlign: 'center',
-  },
-
+  cardTitle: { fontSize: 22, fontWeight: '800', color: '#FFFFFF', marginBottom: 22, textAlign: 'center' },
   googleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
+    borderRadius: 16, paddingVertical: 15, paddingHorizontal: 20, marginBottom: 20,
+    shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
   },
   googleIconWrap: {
-    width: 30, height: 30, borderRadius: 15,
-    backgroundColor: '#4285F4',
-    alignItems: 'center', justifyContent: 'center',
-    marginRight: 14,
+    width: 30, height: 30, borderRadius: 15, backgroundColor: '#4285F4',
+    alignItems: 'center', justifyContent: 'center', marginRight: 14,
   },
   googleG: { color: '#fff', fontSize: 16, fontWeight: '900' },
-  googleBtnText: {
-    flex: 1, textAlign: 'center', marginRight: 30,
-    fontSize: 15, fontWeight: '700', color: '#1A1208',
-  },
-
+  googleBtnText: { flex: 1, textAlign: 'center', marginRight: 30, fontSize: 15, fontWeight: '700', color: '#1A1208' },
   divRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
   divLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
   divText: { color: 'rgba(255,255,255,0.3)', fontSize: 12 },
-
   input: {
-    height: 52,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 14,
-    paddingHorizontal: 18,
-    marginBottom: 12,
-    fontSize: 15,
-    color: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
+    height: 52, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14,
+    paddingHorizontal: 18, marginBottom: 12, fontSize: 15, color: '#FFFFFF',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)',
   },
-
   submitBtn: {
-    backgroundColor: '#7C3AED',
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 22,
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
-    shadowRadius: 12,
-    elevation: 6,
+    backgroundColor: '#7C3AED', paddingVertical: 16, borderRadius: 16,
+    alignItems: 'center', marginTop: 4, marginBottom: 22,
+    shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45, shadowRadius: 12, elevation: 6,
   },
   submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
-
   pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
-
   loginRow: { alignItems: 'center' },
   loginText: { color: 'rgba(255,255,255,0.4)', fontSize: 14 },
   loginLink: { color: '#E85D26', fontWeight: '800' },
-
-  footer: {
-    textAlign: 'center',
-    color: 'rgba(255,255,255,0.18)',
-    fontSize: 11,
-    marginTop: 24,
-  },
+  footer: { textAlign: 'center', color: 'rgba(255,255,255,0.18)', fontSize: 11, marginTop: 24 },
 });

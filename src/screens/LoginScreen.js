@@ -16,6 +16,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';
+import { saveSession } from '../service/sessionStorage';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -75,30 +76,32 @@ export default function LoginScreen() {
       const credential = GoogleAuthProvider.credential(id_token);
       setGoogleLoading(true);
       signInWithCredential(auth, credential)
-        .then(({ user }) => {
-          dispatch(setUser({ email: user.email, uid: user.uid }));
-          navigation.replace('Main');
-        })
-        .catch((e) => Alert.alert('Error Firebase', e.message))
-        .finally(() => setGoogleLoading(false));
-    } else if (response?.type === 'error') {
-      Alert.alert('Error Google', response.error?.message || 'Error desconocido');
-    }
+      .then(async ({ user }) => {
+        await saveSession(user.email, user.uid);      
+        dispatch(setUser({ email: user.email, uid: user.uid }));
+        navigation.replace('Main');
+      })
+      .catch((e) => Alert.alert('Error Firebase', e.message))
+      .finally(() => setGoogleLoading(false));
+      } else if (response?.type === 'error') {
+        Alert.alert('Error Google', response.error?.message || 'Error desconocido');
+      }
   }, [response]);
 
   const handleEmailLogin = async () => {
-    if (!email || !password) { Alert.alert('Error', 'Completá todos los campos'); return; }
-    setLoading(true);
-    try {
-      const { user } = await signInWithEmailAndPassword(auth, email, password);
-      dispatch(setUser({ uid: user.uid, email: user.email }));
-      navigation.replace('Main');
-    } catch {
-      Alert.alert('Error', 'Email o contraseña incorrectos');
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!email || !password) { Alert.alert('Error', 'Completá todos los campos'); return; }
+  setLoading(true);
+  try {
+    const { user } = await signInWithEmailAndPassword(auth, email, password);
+    await saveSession(user.email, user.uid);           
+    dispatch(setUser({ uid: user.uid, email: user.email }));
+    navigation.replace('Main');
+  } catch {
+    Alert.alert('Error', 'Email o contraseña incorrectos');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.root}>

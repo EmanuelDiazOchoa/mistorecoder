@@ -11,6 +11,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { auth } from '../service/firebase';
 import { clearUser } from '../features/auth/authSlice';
 import { toggleDarkMode } from '../redux/uiSlice';
+import { clearSession } from '../service/sessionStorage';
 
 function StatCard({ label, value, icon, color, delay }) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -65,6 +66,7 @@ export default function ProfileScreen() {
         text: 'Salir', style: 'destructive',
         onPress: async () => {
           await signOut(auth);
+          await clearSession();                                
           dispatch(clearUser());
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         },

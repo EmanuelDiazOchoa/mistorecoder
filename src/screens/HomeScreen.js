@@ -61,7 +61,7 @@ export default function HomeScreen({ navigation }) {
     setRefreshing(false);
   }, []);
 
-  const filtered = products.filter((p) => {
+    const filtered = products.filter((p) => {
     const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase());
     const matchFilter = activeFilter === 'Todo' || p.name?.toLowerCase().includes(activeFilter.toLowerCase());
     return matchSearch && matchFilter;

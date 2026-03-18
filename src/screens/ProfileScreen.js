@@ -1,6 +1,7 @@
+// src/screens/ProfileScreen.js
 import React, { useEffect, useState, useRef } from 'react';
 import {
-  View, Text, StyleSheet, Image, Pressable,
+  View, Text, StyleSheet, Pressable,
   Alert, Switch, StatusBar, ScrollView, Animated,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
@@ -33,20 +34,21 @@ function StatCard({ label, value, icon, color, delay }) {
 }
 
 export default function ProfileScreen() {
-  const user = useSelector((state) => state.auth.user);
-  const isDark = useSelector((state) => state.ui.isDark);
-  const orders = useSelector((state) => state.orders.orders);
+  const user      = useSelector((state) => state.auth.user);
+  const isDark    = useSelector((state) => state.ui.isDark);
+  const orders    = useSelector((state) => state.orders.orders);
   const cartCount = useSelector((state) => state.cart.items.length);
-  const dispatch = useDispatch();
+  const favorites = useSelector((state) => state.favorites.items);
+  const dispatch  = useDispatch();
   const navigation = useNavigation();
   const [location, setLocation] = useState(null);
 
-  const headerAnim = useRef(new Animated.Value(0)).current;
+  const headerAnim  = useRef(new Animated.Value(0)).current;
   const contentAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.stagger(150, [
-      Animated.spring(headerAnim, { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
+      Animated.spring(headerAnim,  { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
       Animated.spring(contentAnim, { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
     ]).start();
 
@@ -66,7 +68,7 @@ export default function ProfileScreen() {
         text: 'Salir', style: 'destructive',
         onPress: async () => {
           await signOut(auth);
-          await clearSession();                                
+          await clearSession();
           dispatch(clearUser());
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         },
@@ -75,7 +77,7 @@ export default function ProfileScreen() {
   };
 
   const username = user?.email?.split('@')[0] || 'Usuario';
-  const initial = username.charAt(0).toUpperCase();
+  const initial  = username.charAt(0).toUpperCase();
 
   return (
     <View style={styles.container}>
@@ -84,12 +86,12 @@ export default function ProfileScreen() {
       <View style={styles.bgGlow2} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Profile header */}
+
+        {/* Header */}
         <Animated.View style={[styles.profileHeader, {
           opacity: headerAnim,
           transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
         }]}>
-          {/* Avatar with ring */}
           <View style={styles.avatarRing}>
             <View style={styles.avatarInner}>
               <Text style={styles.avatarInitial}>{initial}</Text>
@@ -108,23 +110,39 @@ export default function ProfileScreen() {
             </View>
           )}
 
-          {/* Member badge */}
           <View style={styles.memberBadge}>
             <Text style={styles.memberBadgeText}>⭐ Miembro Premium</Text>
           </View>
         </Animated.View>
 
-        {/* Stats */}
+        {/* Stats — favoritos reemplaza puntos */}
         <Animated.View style={[styles.statsRow, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
         }]}>
-          <StatCard label="Pedidos" value={orders.length} icon="receipt-long" color="#E85D26" delay={200} />
-          <StatCard label="En carrito" value={cartCount} icon="shopping-cart" color="#7C3AED" delay={300} />
-          <StatCard label="Puntos" value="320" icon="star" color="#F59E0B" delay={400} />
+          <StatCard label="Pedidos"    value={orders.length}    icon="receipt-long"   color="#E85D26" delay={200} />
+          <StatCard label="En carrito" value={cartCount}         icon="shopping-cart"  color="#7C3AED" delay={300} />
+          <StatCard label="Favoritos"  value={favorites.length} icon="favorite"       color="#FF4D6D" delay={400} />
         </Animated.View>
 
-        {/* Settings section */}
+        {/* Favoritos guardados */}
+        {favorites.length > 0 && (
+          <Animated.View style={[styles.section, {
+            opacity: contentAnim,
+            transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+          }]}>
+            <Text style={styles.sectionLabel}>MIS FAVORITOS</Text>
+            {favorites.map((item) => (
+              <View key={item.id} style={styles.favRow}>
+                <MaterialIcons name="favorite" size={16} color="#FF4D6D" />
+                <Text style={styles.favName}>{item.name}</Text>
+                <Text style={styles.favPrice}>${item.price?.toFixed(2)}</Text>
+              </View>
+            ))}
+          </Animated.View>
+        )}
+
+        {/* Preferencias */}
         <Animated.View style={[styles.section, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
@@ -180,7 +198,6 @@ const styles = StyleSheet.create({
     position: 'absolute', width: 200, height: 200, borderRadius: 100,
     backgroundColor: '#7C3AED', opacity: 0.06, top: 200, right: -60,
   },
-
   profileHeader: {
     alignItems: 'center',
     paddingTop: 64, paddingBottom: 32, paddingHorizontal: 24,
@@ -197,11 +214,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(232,93,38,0.2)',
     alignItems: 'center', justifyContent: 'center',
   },
-  avatarInitial: { fontSize: 38, fontWeight: '900', color: '#E85D26' },
-  profileName: { fontSize: 24, fontWeight: '900', color: '#FFFFFF', marginBottom: 4, letterSpacing: -0.3 },
-  profileEmail: { fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 10 },
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 14 },
-  locationText: { fontSize: 12, color: 'rgba(255,255,255,0.35)' },
+  avatarInitial:  { fontSize: 38, fontWeight: '900', color: '#E85D26' },
+  profileName:    { fontSize: 24, fontWeight: '900', color: '#FFFFFF', marginBottom: 4, letterSpacing: -0.3 },
+  profileEmail:   { fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 10 },
+  locationRow:    { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 14 },
+  locationText:   { fontSize: 12, color: 'rgba(255,255,255,0.35)' },
   memberBadge: {
     backgroundColor: 'rgba(245,158,11,0.15)',
     borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)',
@@ -213,10 +230,9 @@ const styles = StyleSheet.create({
   stat: {
     flex: 1, alignItems: 'center', padding: 16, borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.04)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
-    gap: 6,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', gap: 6,
   },
-  statIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  statIcon:  { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   statValue: { fontSize: 22, fontWeight: '900', color: '#FFFFFF' },
   statLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.35)' },
 
@@ -230,13 +246,22 @@ const styles = StyleSheet.create({
     fontSize: 10, fontWeight: '800', letterSpacing: 1.8,
     color: 'rgba(255,255,255,0.25)', paddingTop: 16, paddingBottom: 10,
   },
+
+  favRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  favName:  { flex: 1, fontSize: 14, fontWeight: '600', color: '#FFFFFF' },
+  favPrice: { fontSize: 14, fontWeight: '800', color: '#E85D26' },
+
   settingRow: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
   },
-  settingIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  settingText: { flex: 1, fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
+  settingIcon:  { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  settingText:  { flex: 1, fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
   settingValue: { fontSize: 13, color: 'rgba(255,255,255,0.35)' },
 
   logoutBtn: {

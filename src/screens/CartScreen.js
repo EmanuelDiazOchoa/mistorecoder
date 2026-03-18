@@ -11,6 +11,15 @@ import {
 } from '../redux/cartSlice';
 import { addOrder } from '../redux/ordersSlice';
 import { getProductImage } from '../utils/productImages';
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 function CartItem({ item, index, onIncrement, onDecrement, onRemove }) {
   const anim  = useRef(new Animated.Value(0)).current;
@@ -38,14 +47,12 @@ function CartItem({ item, index, onIncrement, onDecrement, onRemove }) {
         { translateX: anim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) },
       ],
     }]}>
-      {/* Imagen real del producto */}
       <Image source={getProductImage(item.category, item.image)} style={styles.itemImage} />
 
       <View style={styles.itemInfo}>
         <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
         <Text style={styles.itemPrice}>${(item.price * item.quantity).toFixed(2)}</Text>
 
-        {/* Controles de cantidad */}
         <View style={styles.qtyRow}>
           <Pressable onPress={onDecrement} style={styles.qtyBtn} hitSlop={8}>
             <Text style={styles.qtyBtnText}>−</Text>
@@ -85,9 +92,19 @@ export default function CartScreen() {
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Confirmar',
-          onPress: () => {
+          onPress: async () => {
             dispatch(addOrder({ items: cartItems, total }));
             dispatch(clearCart());
+
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: '🎉 ¡Pedido confirmado!',
+                body: `Tu pedido por $${total.toFixed(2)} está siendo preparado.`,
+                sound: true,
+              },
+              trigger: null,
+            });
+
             Alert.alert('🎉 ¡Pedido realizado!', 'Podés verlo en tu historial.');
           },
         },
@@ -181,9 +198,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: 20, padding: 14, marginBottom: 12,
   },
-  itemImage: {
-    width: 64, height: 64, borderRadius: 14, marginRight: 14,
-  },
+  itemImage: { width: 64, height: 64, borderRadius: 14, marginRight: 14 },
   itemInfo:  { flex: 1 },
   itemName:  { fontSize: 15, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 },
   itemPrice: { fontSize: 15, fontWeight: '800', color: '#E85D26', marginBottom: 8 },
@@ -197,8 +212,7 @@ const styles = StyleSheet.create({
   },
   qtyBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', lineHeight: 20 },
   qtyValue:   { color: '#FFFFFF', fontSize: 15, fontWeight: '800', minWidth: 20, textAlign: 'center' },
-
-  removeBtn: { padding: 8 },
+  removeBtn:  { padding: 8 },
 
   empty:      { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   emptyEmoji: { fontSize: 72, marginBottom: 16 },

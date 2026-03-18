@@ -39,7 +39,7 @@ function CartItem({ item, index, onIncrement, onDecrement, onRemove }) {
       ],
     }]}>
       {/* Imagen real del producto */}
-      <Image source={getProductImage(item.category)} style={styles.itemImage} />
+      <Image source={getProductImage(item.category, item.image)} style={styles.itemImage} />
 
       <View style={styles.itemInfo}>
         <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>

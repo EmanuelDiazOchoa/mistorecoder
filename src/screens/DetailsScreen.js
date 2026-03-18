@@ -90,7 +90,7 @@ export default function DetailsScreen({ route }) {
           opacity: imageAnim,
           transform: [{ scale: imageAnim.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) }],
         }]}>
-          <Image source={getProductImage(product.category)} style={styles.image} />
+          <Image source={getProductImage(product.category, product.image)} style={styles.image} />
           <View style={styles.imageFade} />
         </Animated.View>
 

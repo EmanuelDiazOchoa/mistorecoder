@@ -1,14 +1,17 @@
-export const getProductImage = (category) => {
-  const map = {
-    pan:        require('../../assets/Pan.webp'),
-    torta:      require('../../assets/Torta.webp'),
-    budin:      require('../../assets/Budin.webp'),
-    galletitas: require('../../assets/Galletitas.jpg'),
-    donas:      require('../../assets/dona.png'),
-    chocolate:  require('../../assets/chocolate.webp'),
-    chocolates: require('../../assets/chocolate.webp'),
-  };
-  return map[category?.toLowerCase().trim()] ?? require('../../assets/icon.png');
+const CATEGORY_FALLBACKS = {
+  pan:        require('../../assets/Pan.webp'),
+  torta:      require('../../assets/Torta.webp'),
+  budin:      require('../../assets/Budin.webp'),
+  galletitas: require('../../assets/Galletitas.jpg'),
+  donas:      require('../../assets/dona.png'),
+  chocolate:  require('../../assets/chocolate.webp'),
+  chocolates: require('../../assets/chocolate.webp'),
+};
+
+export const getProductImage = (category, imageUrl) => {
+  if (imageUrl) return { uri: imageUrl };
+  return CATEGORY_FALLBACKS[category?.toLowerCase().trim()]
+    ?? require('../../assets/icon.png');
 };
 
 export const CATEGORIES = [

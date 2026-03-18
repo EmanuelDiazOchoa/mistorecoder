@@ -46,7 +46,7 @@ export default function CategoryProductsScreen({ route, navigation }) {
   const products     = useSelector((state) => state.products.products);
 
   const filtered = products.filter((item) =>
-    item.name?.toLowerCase().includes(category)
+    item.category?.toLowerCase() === category.toLowerCase()
   );
 
   const catInfo = CATEGORIES.find((c) => c.key === category);

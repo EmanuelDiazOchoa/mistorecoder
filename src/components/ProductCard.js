@@ -19,7 +19,7 @@ export default function ProductCard({ product, onPress }) {
         { backgroundColor: theme.colors.card, transform: [{ scale }] },
         theme.shadows.sm,
       ]}>
-        <Image source={getProductImage(product.name)} style={styles.image} />
+        <Image source={getProductImage(product.category)} style={styles.image} />
         <View style={styles.info}>
           <Text style={[styles.name, { color: theme.colors.text }]}>{product.name}</Text>
           <Text style={[styles.category, { color: theme.colors.textMuted }]}>

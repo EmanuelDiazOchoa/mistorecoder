@@ -4,6 +4,8 @@ import {
   Alert, StatusBar, ScrollView, Animated,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { addToCart } from '../redux/cartSlice';
 import { getProductImage } from '../utils/productImages';
@@ -52,6 +54,7 @@ function IconStar({ color = '#E85D26', size = 18 }) {
 export default function DetailsScreen({ route }) {
   const { product } = route.params;
   const dispatch = useDispatch();
+  const navigation = useNavigation();
 
   const sheetAnim = useRef(new Animated.Value(0)).current;
   const imageAnim = useRef(new Animated.Value(0)).current;
@@ -80,12 +83,19 @@ export default function DetailsScreen({ route }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* Background glows */}
       <View style={styles.glow1} />
       <View style={styles.glow2} />
 
+      {/* Botón back flotante */}
+      <Pressable
+        onPress={() => navigation.goBack()}
+        style={styles.backBtn}
+        hitSlop={12}
+      >
+        <MaterialIcons name="arrow-back-ios" size={20} color="#FFFFFF" />
+      </Pressable>
+
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Product image */}
         <Animated.View style={[styles.imageWrap, {
           opacity: imageAnim,
           transform: [{ scale: imageAnim.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) }],
@@ -94,15 +104,12 @@ export default function DetailsScreen({ route }) {
           <View style={styles.imageFade} />
         </Animated.View>
 
-        {/* Sheet */}
         <Animated.View style={[styles.sheet, {
           opacity: sheetAnim,
           transform: [{ translateY: sheetAnim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
         }]}>
-          {/* Handle */}
           <View style={styles.handle} />
 
-          {/* Name + price */}
           <Text style={styles.name}>{product.name}</Text>
           <View style={styles.priceRow}>
             <Text style={styles.price}>${product.price?.toFixed(2)}</Text>
@@ -111,7 +118,6 @@ export default function DetailsScreen({ route }) {
             </View>
           </View>
 
-          {/* Info pills */}
           <View style={styles.infoRow}>
             {INFO.map(({ Icon, label }, i) => (
               <View key={i} style={styles.infoPill}>
@@ -121,15 +127,13 @@ export default function DetailsScreen({ route }) {
             ))}
           </View>
 
-          {/* Description */}
           <Text style={styles.descTitle}>Sobre este producto</Text>
           <Text style={styles.desc}>
-            Elaborado diariamente con ingredientes frescos y seleccionados. 
-            Recetas tradicionales preparadas con amor y sin conservantes ni 
+            Elaborado diariamente con ingredientes frescos y seleccionados.
+            Recetas tradicionales preparadas con amor y sin conservantes ni
             aditivos artificiales. Directo del horno a tu mesa. 🍞
           </Text>
 
-          {/* Tags */}
           <View style={styles.tags}>
             {['Sin TACC', 'Sin conservantes', 'Hecho hoy'].map((tag) => (
               <View key={tag} style={styles.tag}>
@@ -142,7 +146,6 @@ export default function DetailsScreen({ route }) {
         </Animated.View>
       </ScrollView>
 
-      {/* Footer */}
       <Animated.View style={[styles.footer, {
         opacity: footerAnim,
         transform: [{ translateY: footerAnim.interpolate({ inputRange: [0, 1], outputRange: [60, 0] }) }],
@@ -177,6 +180,17 @@ const styles = StyleSheet.create({
   glow2: {
     position: 'absolute', width: 200, height: 200, borderRadius: 100,
     backgroundColor: '#7C3AED', opacity: 0.05, bottom: 200, left: -60,
+  },
+
+  backBtn: {
+    position: 'absolute',
+    top: 56, left: 20,
+    zIndex: 10,
+    width: 38, height: 38,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center', justifyContent: 'center',
   },
 
   imageWrap: { width: '100%', height: 300, position: 'relative' },

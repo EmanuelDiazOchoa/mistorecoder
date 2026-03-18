@@ -1,4 +1,3 @@
-// src/screens/HomeScreen.js
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, FlatList, StyleSheet,
@@ -9,6 +8,7 @@ import { fetchProducts } from '../redux/productsSlice';
 import ProductCard from '../components/ProductCard';
 import SearchBar from '../components/SearchBar';
 import EmptyState from '../components/EmptyState';
+import SkeletonCard from '../components/SkeletonCard';
 
 function AnimatedCard({ children, index }) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -37,6 +37,16 @@ const FILTERS = [
   { label: 'Postres',    key: 'budin'      },
   { label: 'Chocolates', key: 'chocolate'  },
 ];
+
+function SkeletonList() {
+  return (
+    <View style={{ paddingHorizontal: 20, paddingTop: 8 }}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <SkeletonCard key={i} />
+      ))}
+    </View>
+  );
+}
 
 export default function HomeScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -164,14 +174,16 @@ export default function HomeScreen({ navigation }) {
         }
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={
-          !loading && (
-            <EmptyState
-              icon="search-off"
-              title="Sin resultados"
-              subtitle="Intentá con otro nombre o categoría"
-            />
-          )
-        }
+            loading
+              ? <SkeletonList />
+              : (
+                <EmptyState
+                  icon="search-off"
+                  title="Sin resultados"
+                  subtitle="Intentá con otro nombre o categoría"
+                />
+              )
+          }
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
       />

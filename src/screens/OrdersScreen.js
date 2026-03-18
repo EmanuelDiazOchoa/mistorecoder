@@ -43,10 +43,14 @@ function OrderCard({ item, index, total }) {
 
       {/* Items */}
       <View style={styles.divider} />
-      {item.items.map((prod, i) => (
+     {item.items.map((prod, i) => (
         <View key={i} style={styles.productRow}>
-          <Text style={styles.productName}>• {prod.name}</Text>
-          <Text style={styles.productPrice}>${prod.price?.toFixed(2)}</Text>
+          <Text style={styles.productName}>
+            • {prod.name}{prod.quantity > 1 ? ` x${prod.quantity}` : ''}
+          </Text>
+          <Text style={styles.productPrice}>
+            ${(prod.price * (prod.quantity || 1)).toFixed(2)}
+          </Text>
         </View>
       ))}
       <View style={styles.divider} />

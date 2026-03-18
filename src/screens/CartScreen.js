@@ -1,15 +1,19 @@
 import React, { useRef, useEffect } from 'react';
 import {
-  View, Text, FlatList, StyleSheet,
+  View, Text, FlatList, StyleSheet, Image,
   Pressable, Alert, StatusBar, Animated,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { MaterialIcons } from '@expo/vector-icons';
-import { removeFromCart, clearCart } from '../redux/cartSlice';
+import {
+  incrementQuantity, decrementQuantity,
+  removeFromCart, clearCart,
+} from '../redux/cartSlice';
 import { addOrder } from '../redux/ordersSlice';
+import { getProductImage } from '../utils/productImages';
 
-function CartItem({ item, index, onRemove }) {
-  const anim = useRef(new Animated.Value(0)).current;
+function CartItem({ item, index, onIncrement, onDecrement, onRemove }) {
+  const anim  = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -21,7 +25,7 @@ function CartItem({ item, index, onRemove }) {
 
   const handleRemove = () => {
     Animated.parallel([
-      Animated.timing(anim, { toValue: 0, duration: 250, useNativeDriver: true }),
+      Animated.timing(anim,  { toValue: 0, duration: 250, useNativeDriver: true }),
       Animated.spring(scale, { toValue: 0.85, useNativeDriver: true }),
     ]).start(() => onRemove());
   };
@@ -34,13 +38,25 @@ function CartItem({ item, index, onRemove }) {
         { translateX: anim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) },
       ],
     }]}>
-      <View style={styles.itemIconWrap}>
-        <Text style={styles.itemEmoji}>🛍️</Text>
-      </View>
+      {/* Imagen real del producto */}
+      <Image source={getProductImage(item.name)} style={styles.itemImage} />
+
       <View style={styles.itemInfo}>
         <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
-        <Text style={styles.itemPrice}>${item.price?.toFixed(2)}</Text>
+        <Text style={styles.itemPrice}>${(item.price * item.quantity).toFixed(2)}</Text>
+
+        {/* Controles de cantidad */}
+        <View style={styles.qtyRow}>
+          <Pressable onPress={onDecrement} style={styles.qtyBtn} hitSlop={8}>
+            <Text style={styles.qtyBtnText}>−</Text>
+          </Pressable>
+          <Text style={styles.qtyValue}>{item.quantity}</Text>
+          <Pressable onPress={onIncrement} style={styles.qtyBtn} hitSlop={8}>
+            <Text style={styles.qtyBtnText}>+</Text>
+          </Pressable>
+        </View>
       </View>
+
       <Pressable onPress={handleRemove} style={styles.removeBtn} hitSlop={10}>
         <MaterialIcons name="delete-outline" size={22} color="#FF4D4D" />
       </Pressable>
@@ -49,19 +65,22 @@ function CartItem({ item, index, onRemove }) {
 }
 
 export default function CartScreen() {
-  const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cart.items);
-  const total = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
+  const dispatch   = useDispatch();
+  const cartItems  = useSelector((state) => state.cart.items);
+  const total      = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const totalUnits = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const footerAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    Animated.spring(footerAnim, { toValue: 1, tension: 50, friction: 10, delay: 300, useNativeDriver: true }).start();
+    Animated.spring(footerAnim, {
+      toValue: 1, tension: 50, friction: 10, delay: 300, useNativeDriver: true,
+    }).start();
   }, []);
 
   const handlePurchase = () => {
     Alert.alert(
       '✅ Confirmar pedido',
-      `Total: $${total.toFixed(2)}\n¿Confirmás tu pedido?`,
+      `${totalUnits} producto${totalUnits !== 1 ? 's' : ''}\nTotal: $${total.toFixed(2)}\n\n¿Confirmás tu pedido?`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -79,8 +98,6 @@ export default function CartScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-
-      {/* Glow decoration */}
       <View style={styles.bgGlow} />
 
       <View style={styles.header}>
@@ -105,19 +122,20 @@ export default function CartScreen() {
         <>
           <FlatList
             data={cartItems}
-            keyExtractor={(_, i) => i.toString()}
+            keyExtractor={(item) => item.id?.toString()}
             renderItem={({ item, index }) => (
               <CartItem
                 item={item}
                 index={index}
-                onRemove={() => dispatch(removeFromCart(index))}
+                onIncrement={() => dispatch(incrementQuantity(item.id))}
+                onDecrement={() => dispatch(decrementQuantity(item.id))}
+                onRemove={()    => dispatch(removeFromCart(item.id))}
               />
             )}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
           />
 
-          {/* Floating footer */}
           <Animated.View style={[styles.footer, {
             opacity: footerAnim,
             transform: [{ translateY: footerAnim.interpolate({ inputRange: [0, 1], outputRange: [80, 0] }) }],
@@ -125,7 +143,7 @@ export default function CartScreen() {
             <View style={styles.footerGlow} />
             <View style={styles.totalRow}>
               <View>
-                <Text style={styles.totalLabel}>{cartItems.length} producto{cartItems.length !== 1 ? 's' : ''}</Text>
+                <Text style={styles.totalLabel}>{totalUnits} unidad{totalUnits !== 1 ? 'es' : ''}</Text>
                 <Text style={styles.totalAmount}>${total.toFixed(2)}</Text>
               </View>
               <Pressable
@@ -146,67 +164,67 @@ export default function CartScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0A0F' },
   bgGlow: {
-    position: 'absolute',
-    width: 300, height: 300, borderRadius: 150,
-    backgroundColor: '#E85D26', opacity: 0.05,
-    top: -100, right: -80,
+    position: 'absolute', width: 300, height: 300, borderRadius: 150,
+    backgroundColor: '#E85D26', opacity: 0.05, top: -100, right: -80,
   },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24,
   },
-  title: { fontSize: 32, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 },
+  title:    { fontSize: 32, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 },
   clearBtn: { fontSize: 14, fontWeight: '700', color: '#FF4D4D' },
-  list: { paddingHorizontal: 20, paddingBottom: 200 },
+  list:     { paddingHorizontal: 20, paddingBottom: 200 },
 
   item: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 20, padding: 16, marginBottom: 12,
+    borderRadius: 20, padding: 14, marginBottom: 12,
   },
-  itemIconWrap: {
-    width: 52, height: 52, borderRadius: 14,
-    backgroundColor: 'rgba(232,93,38,0.12)',
-    alignItems: 'center', justifyContent: 'center', marginRight: 14,
+  itemImage: {
+    width: 64, height: 64, borderRadius: 14, marginRight: 14,
   },
-  itemEmoji: { fontSize: 26 },
-  itemInfo: { flex: 1 },
-  itemName: { fontSize: 16, fontWeight: '700', color: '#FFFFFF', marginBottom: 4 },
-  itemPrice: { fontSize: 15, fontWeight: '800', color: '#E85D26' },
+  itemInfo:  { flex: 1 },
+  itemName:  { fontSize: 15, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 },
+  itemPrice: { fontSize: 15, fontWeight: '800', color: '#E85D26', marginBottom: 8 },
+
+  qtyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  qtyBtn: {
+    width: 28, height: 28, borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  qtyBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', lineHeight: 20 },
+  qtyValue:   { color: '#FFFFFF', fontSize: 15, fontWeight: '800', minWidth: 20, textAlign: 'center' },
+
   removeBtn: { padding: 8 },
 
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
+  empty:      { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   emptyEmoji: { fontSize: 72, marginBottom: 16 },
   emptyTitle: { fontSize: 20, fontWeight: '800', color: '#FFFFFF', marginBottom: 8, textAlign: 'center' },
-  emptySub: { fontSize: 14, color: 'rgba(255,255,255,0.35)', textAlign: 'center', lineHeight: 20 },
+  emptySub:   { fontSize: 14, color: 'rgba(255,255,255,0.35)', textAlign: 'center', lineHeight: 20 },
 
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: 'rgba(15,10,30,0.95)',
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
     borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
-    padding: 24, paddingBottom: 40,
-    overflow: 'hidden',
+    padding: 24, paddingBottom: 40, overflow: 'hidden',
   },
   footerGlow: {
-    position: 'absolute',
-    width: 200, height: 100, borderRadius: 100,
-    backgroundColor: '#E85D26', opacity: 0.08,
-    top: -20, left: 20,
+    position: 'absolute', width: 200, height: 100, borderRadius: 100,
+    backgroundColor: '#E85D26', opacity: 0.08, top: -20, left: 20,
   },
-  totalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  totalLabel: { fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 2 },
+  totalRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  totalLabel:  { fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 2 },
   totalAmount: { fontSize: 30, fontWeight: '900', color: '#FFFFFF' },
   buyBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: '#E85D26',
-    paddingVertical: 16, paddingHorizontal: 24,
-    borderRadius: 18,
-    shadowColor: '#E85D26',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5, shadowRadius: 14,
-    elevation: 8,
+    paddingVertical: 16, paddingHorizontal: 24, borderRadius: 18,
+    shadowColor: '#E85D26', shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5, shadowRadius: 14, elevation: 8,
   },
   buyBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });

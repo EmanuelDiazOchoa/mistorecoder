@@ -15,6 +15,7 @@ import { useTheme } from '../hooks/useTheme';
 import ConfirmModal from '../components/ConfirmModal';
 import * as Notifications from 'expo-notifications';
 
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,

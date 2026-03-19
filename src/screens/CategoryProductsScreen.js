@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { MaterialIcons } from '@expo/vector-icons';
 import ProductCard from '../components/ProductCard';
 import { CATEGORIES } from '../utils/productImages';
+import { useTheme } from '../hooks/useTheme';
 
 const CATEGORY_COLORS = {
   pan:        '#E85D26',
@@ -51,6 +52,7 @@ export default function CategoryProductsScreen({ route, navigation }) {
 
   const catInfo = CATEGORIES.find((c) => c.key === category);
   const color   = CATEGORY_COLORS[category] || '#E85D26';
+  const theme = useTheme();
 
   const headerAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -61,6 +63,7 @@ export default function CategoryProductsScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <StatusBar barStyle="light-content" />
       <View style={[styles.bgGlow, { backgroundColor: color }]} />
 

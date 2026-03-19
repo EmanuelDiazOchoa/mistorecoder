@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector, useDispatch } from 'react-redux';
 import { MaterialIcons } from '@expo/vector-icons';
 import { loadOrders } from '../redux/ordersSlice';
+import { useTheme } from '../hooks/useTheme';
 
 function OrderCard({ item, index, total }) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -67,6 +68,7 @@ function OrderCard({ item, index, total }) {
 export default function OrdersScreen() {
   const dispatch = useDispatch();
   const orders = useSelector((state) => state.orders.orders);
+  const theme = useTheme();
 
   const titleAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -78,6 +80,7 @@ export default function OrdersScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <StatusBar barStyle="light-content" />
       <View style={styles.bgGlow} />
       <View style={styles.bgGlow2} />

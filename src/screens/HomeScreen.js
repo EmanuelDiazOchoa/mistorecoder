@@ -9,6 +9,7 @@ import ProductCard from '../components/ProductCard';
 import SearchBar from '../components/SearchBar';
 import EmptyState from '../components/EmptyState';
 import SkeletonCard from '../components/SkeletonCard';
+import { useTheme } from '../hooks/useTheme';
 
 function AnimatedCard({ children, index }) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -55,6 +56,7 @@ export default function HomeScreen({ navigation }) {
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todo');
   const [refreshing, setRefreshing] = useState(false);
+  const theme = useTheme();
 
   const headerAnim = useRef(new Animated.Value(0)).current;
   const searchAnim = useRef(new Animated.Value(0)).current;
@@ -157,6 +159,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <StatusBar barStyle="light-content" />
       <FlatList
         data={filtered}

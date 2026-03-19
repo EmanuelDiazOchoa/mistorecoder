@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, StatusBar, Animated } from 'react-native';
 import { CATEGORIES } from '../utils/productImages';
+import { useTheme } from '../hooks/useTheme';
 
 const CATEGORY_COLORS = {
   pan: { primary: '#E85D26', bg: 'rgba(232,93,38,0.12)', border: 'rgba(232,93,38,0.25)' },
@@ -23,6 +24,7 @@ function CategoryCard({ item, index, onPress }) {
   }, []);
 
   const colors = CATEGORY_COLORS[item.key] || CATEGORY_COLORS.pan;
+  const theme = useTheme();
 
   return (
     <Animated.View style={{
@@ -59,7 +61,7 @@ export default function CategoriesScreen({ navigation }) {
 
   const handlePress = (item) => navigation.navigate('CategoryProducts', { category: item.key });
 
-  // Render in 2 columns
+  
   const rows = [];
   for (let i = 0; i < CATEGORIES.length; i += 2) {
     rows.push(CATEGORIES.slice(i, i + 2));
@@ -67,6 +69,7 @@ export default function CategoriesScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <StatusBar barStyle="light-content" />
       <View style={styles.bgGlow} />
 

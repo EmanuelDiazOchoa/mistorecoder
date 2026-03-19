@@ -54,6 +54,7 @@ function CategoryCard({ item, index, onPress }) {
 
 export default function CategoriesScreen({ navigation }) {
   const titleAnim = useRef(new Animated.Value(0)).current;
+  const theme = useTheme();   
 
   useEffect(() => {
     Animated.spring(titleAnim, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }).start();

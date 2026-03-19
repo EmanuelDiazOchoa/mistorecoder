@@ -57,9 +57,11 @@ export const shadows = {
 };
 
 
-export const getTheme = (isDark) => ({
+export const getTheme = (isDark, accentColor = '#E85D26') => ({
   ...palette,
   colors: isDark ? palette.dark : palette.light,
   shadows,
   isDark,
+  primary: accentColor,
+  bgTint: `${accentColor}0D`,  
 });

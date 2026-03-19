@@ -1,7 +1,7 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View, Text, FlatList, StyleSheet, Image,
-  Pressable, Alert, StatusBar, Animated,
+  Pressable, StatusBar, Animated, StyleSheet as RN,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -11,6 +11,8 @@ import {
 } from '../redux/cartSlice';
 import { addOrder } from '../redux/ordersSlice';
 import { getProductImage } from '../utils/productImages';
+import { useTheme } from '../hooks/useTheme';
+import ConfirmModal from '../components/ConfirmModal';
 import * as Notifications from 'expo-notifications';
 
 Notifications.setNotificationHandler({
@@ -21,7 +23,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-function CartItem({ item, index, onIncrement, onDecrement, onRemove }) {
+function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove }) {
   const anim  = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -50,8 +52,12 @@ function CartItem({ item, index, onIncrement, onDecrement, onRemove }) {
       <Image source={getProductImage(item.category, item.image)} style={styles.itemImage} />
 
       <View style={styles.itemInfo}>
-        <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
-        <Text style={styles.itemPrice}>${(item.price * item.quantity).toFixed(2)}</Text>
+        <Text style={styles.itemName} numberOfLines={1}>
+          {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
+        </Text>
+        <Text style={[styles.itemPrice, { color: accentColor }]}>
+          ${(item.price * item.quantity).toFixed(2)}
+        </Text>
 
         <View style={styles.qtyRow}>
           <Pressable onPress={onDecrement} style={styles.qtyBtn} hitSlop={8}>
@@ -72,10 +78,14 @@ function CartItem({ item, index, onIncrement, onDecrement, onRemove }) {
 }
 
 export default function CartScreen() {
-  const dispatch   = useDispatch();
-  const cartItems  = useSelector((state) => state.cart.items);
-  const total      = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const totalUnits = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const dispatch    = useDispatch();
+  const theme       = useTheme();
+  const cartItems   = useSelector((state) => state.cart.items);
+  const accentColor = useSelector((state) => state.ui.accentColor ?? '#E85D26');
+  const total       = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const totalUnits  = cartItems.reduce((sum, i) => sum + i.quantity, 0);
+
+  const [modal, setModal] = useState({ type: null });
 
   const footerAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -84,46 +94,60 @@ export default function CartScreen() {
     }).start();
   }, []);
 
-  const handlePurchase = () => {
-    Alert.alert(
-      '✅ Confirmar pedido',
-      `${totalUnits} producto${totalUnits !== 1 ? 's' : ''}\nTotal: $${total.toFixed(2)}\n\n¿Confirmás tu pedido?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Confirmar',
-          onPress: async () => {
-            dispatch(addOrder({ items: cartItems, total }));
-            dispatch(clearCart());
+  const handlePurchase = () => setModal({ type: 'purchase' });
 
-            await Notifications.scheduleNotificationAsync({
-              content: {
-                title: '🎉 ¡Pedido confirmado!',
-                body: `Tu pedido por $${total.toFixed(2)} está siendo preparado.`,
-                sound: true,
-              },
-              trigger: null,
-            });
-
-            Alert.alert('🎉 ¡Pedido realizado!', 'Podés verlo en tu historial.');
-          },
-        },
-      ]
-    );
+  const confirmPurchase = async () => {
+    setModal({ type: null });
+    dispatch(addOrder({ items: cartItems, total }));
+    dispatch(clearCart());
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '🎉 ¡Pedido confirmado!',
+        body: `Tu pedido por $${total.toFixed(2)} está siendo preparado.`,
+        sound: true,
+      },
+      trigger: null,
+    });
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <View style={styles.bgGlow} />
+
+      {/* Tinte de fondo dinámico */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: `${accentColor}0D`, pointerEvents: 'none' }]} />
+      <View style={[styles.bgGlow, { backgroundColor: accentColor }]} />
+
+      {/* Modal confirmar pedido */}
+      <ConfirmModal
+        visible={modal.type === 'purchase'}
+        title="Confirmar pedido"
+        subtitle={`$${total.toFixed(2)}`}
+        body={`${totalUnits} producto${totalUnits !== 1 ? 's' : ''} · Entrega estimada 30 min`}
+        confirmText="Confirmar pedido"
+        cancelText="Cancelar"
+        accentColor={accentColor}
+        onConfirm={confirmPurchase}
+        onCancel={() => setModal({ type: null })}
+      />
+
+      {/* Modal vaciar carrito */}
+      <ConfirmModal
+        visible={modal.type === 'clear'}
+        title="Vaciar carrito"
+        body="Se eliminarán todos los productos. ¿Estás seguro?"
+        confirmText="Vaciar todo"
+        cancelText="Cancelar"
+        accentColor={accentColor}
+        confirmDestructive
+        onConfirm={() => { dispatch(clearCart()); setModal({ type: null }); }}
+        onCancel={() => setModal({ type: null })}
+      />
 
       <View style={styles.header}>
         <Text style={styles.title}>Carrito</Text>
         {cartItems.length > 0 && (
-          <Pressable onPress={() => Alert.alert('Vaciar', '¿Eliminás todo?', [
-            { text: 'Cancelar', style: 'cancel' },
-            { text: 'Vaciar', style: 'destructive', onPress: () => dispatch(clearCart()) },
-          ])}>
+          <Pressable onPress={() => setModal({ type: 'clear' })}>
             <Text style={styles.clearBtn}>Vaciar</Text>
           </Pressable>
         )}
@@ -144,6 +168,7 @@ export default function CartScreen() {
               <CartItem
                 item={item}
                 index={index}
+                accentColor={accentColor}
                 onIncrement={() => dispatch(incrementQuantity(item.id))}
                 onDecrement={() => dispatch(decrementQuantity(item.id))}
                 onRemove={()    => dispatch(removeFromCart(item.id))}
@@ -157,14 +182,18 @@ export default function CartScreen() {
             opacity: footerAnim,
             transform: [{ translateY: footerAnim.interpolate({ inputRange: [0, 1], outputRange: [80, 0] }) }],
           }]}>
-            <View style={styles.footerGlow} />
+            <View style={[styles.footerGlow, { backgroundColor: accentColor }]} />
             <View style={styles.totalRow}>
               <View>
                 <Text style={styles.totalLabel}>{totalUnits} unidad{totalUnits !== 1 ? 'es' : ''}</Text>
                 <Text style={styles.totalAmount}>${total.toFixed(2)}</Text>
               </View>
               <Pressable
-                style={({ pressed }) => [styles.buyBtn, pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] }]}
+                style={({ pressed }) => [
+                  styles.buyBtn,
+                  { backgroundColor: accentColor, shadowColor: accentColor },
+                  pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] },
+                ]}
                 onPress={handlePurchase}
               >
                 <Text style={styles.buyBtnText}>Finalizar pedido</Text>
@@ -182,7 +211,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0A0F' },
   bgGlow: {
     position: 'absolute', width: 300, height: 300, borderRadius: 150,
-    backgroundColor: '#E85D26', opacity: 0.05, top: -100, right: -80,
+    opacity: 0.05, top: -100, right: -80,
   },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
@@ -201,7 +230,7 @@ const styles = StyleSheet.create({
   itemImage: { width: 64, height: 64, borderRadius: 14, marginRight: 14 },
   itemInfo:  { flex: 1 },
   itemName:  { fontSize: 15, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 },
-  itemPrice: { fontSize: 15, fontWeight: '800', color: '#E85D26', marginBottom: 8 },
+  itemPrice: { fontSize: 15, fontWeight: '800', marginBottom: 8 },
 
   qtyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   qtyBtn: {
@@ -224,20 +253,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15,10,30,0.95)',
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
     borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
-    padding: 24, paddingBottom: 40, overflow: 'hidden',
+    padding: 24, paddingBottom: 96, overflow: 'hidden',
   },
   footerGlow: {
     position: 'absolute', width: 200, height: 100, borderRadius: 100,
-    backgroundColor: '#E85D26', opacity: 0.08, top: -20, left: 20,
+    opacity: 0.08, top: -20, left: 20,
   },
   totalRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   totalLabel:  { fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 2 },
   totalAmount: { fontSize: 30, fontWeight: '900', color: '#FFFFFF' },
   buyBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#E85D26',
     paddingVertical: 16, paddingHorizontal: 24, borderRadius: 18,
-    shadowColor: '#E85D26', shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.5, shadowRadius: 14, elevation: 8,
   },
   buyBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },

@@ -1,8 +1,7 @@
-// src/screens/ProfileScreen.js
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, Pressable,
-  Alert, Switch, StatusBar, ScrollView, Animated,
+  Alert, StatusBar, ScrollView, Animated,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { signOut } from 'firebase/auth';
@@ -11,7 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { auth } from '../service/firebase';
 import { clearUser } from '../features/auth/authSlice';
-import { toggleDarkMode } from '../redux/uiSlice';
+import { setAccentColor, ACCENT_COLORS } from '../redux/uiSlice';
 import { clearSession } from '../service/sessionStorage';
 
 function StatCard({ label, value, icon, color, delay }) {
@@ -34,13 +33,13 @@ function StatCard({ label, value, icon, color, delay }) {
 }
 
 export default function ProfileScreen() {
-  const user      = useSelector((state) => state.auth.user);
-  const isDark    = useSelector((state) => state.ui.isDark);
-  const orders    = useSelector((state) => state.orders.orders);
-  const cartCount = useSelector((state) => state.cart.items.length);
-  const favorites = useSelector((state) => state.favorites.items);
-  const dispatch  = useDispatch();
-  const navigation = useNavigation();
+  const user        = useSelector((state) => state.auth.user);
+  const orders      = useSelector((state) => state.orders.orders);
+  const cartCount   = useSelector((state) => state.cart.items.length);
+  const favorites   = useSelector((state) => state.favorites.items);
+  const accentColor = useSelector((state) => state.ui.accentColor ?? '#E85D26');
+  const dispatch    = useDispatch();
+  const navigation  = useNavigation();
   const [location, setLocation] = useState(null);
 
   const headerAnim  = useRef(new Animated.Value(0)).current;
@@ -82,19 +81,19 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <View style={styles.bgGlow1} />
+      <View style={[styles.bgGlow1, { backgroundColor: accentColor }]} />
       <View style={styles.bgGlow2} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
 
-        {/* Header */}
+        {/* Header del perfil */}
         <Animated.View style={[styles.profileHeader, {
           opacity: headerAnim,
           transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
         }]}>
-          <View style={styles.avatarRing}>
-            <View style={styles.avatarInner}>
-              <Text style={styles.avatarInitial}>{initial}</Text>
+          <View style={[styles.avatarRing, { borderColor: accentColor, shadowColor: accentColor }]}>
+            <View style={[styles.avatarInner, { backgroundColor: `${accentColor}30` }]}>
+              <Text style={[styles.avatarInitial, { color: accentColor }]}>{initial}</Text>
             </View>
           </View>
 
@@ -103,7 +102,7 @@ export default function ProfileScreen() {
 
           {location && (
             <View style={styles.locationRow}>
-              <MaterialIcons name="location-on" size={13} color="#E85D26" />
+              <MaterialIcons name="location-on" size={13} color={accentColor} />
               <Text style={styles.locationText}>
                 {location.latitude.toFixed(3)}, {location.longitude.toFixed(3)}
               </Text>
@@ -115,14 +114,14 @@ export default function ProfileScreen() {
           </View>
         </Animated.View>
 
-        {/* Stats — favoritos reemplaza puntos */}
+        {/* Stats */}
         <Animated.View style={[styles.statsRow, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
         }]}>
-          <StatCard label="Pedidos"    value={orders.length}    icon="receipt-long"   color="#E85D26" delay={200} />
-          <StatCard label="En carrito" value={cartCount}         icon="shopping-cart"  color="#7C3AED" delay={300} />
-          <StatCard label="Favoritos"  value={favorites.length} icon="favorite"       color="#FF4D6D" delay={400} />
+          <StatCard label="Pedidos"    value={orders.length}    icon="receipt-long"  color={accentColor} delay={200} />
+          <StatCard label="En carrito" value={cartCount}        icon="shopping-cart" color="#7C3AED"     delay={300} />
+          <StatCard label="Favoritos"  value={favorites.length} icon="favorite"      color="#FF4D6D"     delay={400} />
         </Animated.View>
 
         {/* Favoritos guardados */}
@@ -135,36 +134,44 @@ export default function ProfileScreen() {
             {favorites.map((item) => (
               <View key={item.id} style={styles.favRow}>
                 <MaterialIcons name="favorite" size={16} color="#FF4D6D" />
-                <Text style={styles.favName}>{item.name}</Text>
-                <Text style={styles.favPrice}>${item.price?.toFixed(2)}</Text>
+                <Text style={styles.favName}>
+                  {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
+                </Text>
+                <Text style={[styles.favPrice, { color: accentColor }]}>
+                  ${item.price?.toFixed(2)}
+                </Text>
               </View>
             ))}
           </Animated.View>
         )}
 
-        {/* Preferencias */}
+        {/* Selector de color de acento */}
         <Animated.View style={[styles.section, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
         }]}>
-          <Text style={styles.sectionLabel}>PREFERENCIAS</Text>
-
-          <View style={styles.settingRow}>
-            <View style={[styles.settingIcon, { backgroundColor: 'rgba(124,58,237,0.15)' }]}>
-              <MaterialIcons name="dark-mode" size={18} color="#7C3AED" />
-            </View>
-            <Text style={styles.settingText}>Modo oscuro</Text>
-            <Switch
-              value={isDark}
-              onValueChange={() => dispatch(toggleDarkMode())}
-              trackColor={{ false: 'rgba(255,255,255,0.1)', true: '#E85D26' }}
-              thumbColor="#fff"
-            />
+          <Text style={styles.sectionLabel}>COLOR DE ACENTO</Text>
+          <View style={styles.colorRow}>
+            {ACCENT_COLORS.map((color) => (
+              <Pressable
+                key={color}
+                onPress={() => dispatch(setAccentColor(color))}
+                style={[
+                  styles.colorDot,
+                  { backgroundColor: color },
+                  accentColor === color && [styles.colorDotActive, { borderColor: '#FFFFFF' }],
+                ]}
+              >
+                {accentColor === color && (
+                  <Text style={styles.colorCheck}>✓</Text>
+                )}
+              </Pressable>
+            ))}
           </View>
 
           <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
-            <View style={[styles.settingIcon, { backgroundColor: 'rgba(232,93,38,0.15)' }]}>
-              <MaterialIcons name="info-outline" size={18} color="#E85D26" />
+            <View style={[styles.settingIcon, { backgroundColor: `${accentColor}20` }]}>
+              <MaterialIcons name="info-outline" size={18} color={accentColor} />
             </View>
             <Text style={styles.settingText}>Versión</Text>
             <Text style={styles.settingValue}>Roma Store 1.0</Text>
@@ -192,33 +199,32 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0A0F' },
   bgGlow1: {
     position: 'absolute', width: 300, height: 300, borderRadius: 150,
-    backgroundColor: '#E85D26', opacity: 0.06, top: -60, left: -80,
+    opacity: 0.06, top: -60, left: -80,
   },
   bgGlow2: {
     position: 'absolute', width: 200, height: 200, borderRadius: 100,
     backgroundColor: '#7C3AED', opacity: 0.06, top: 200, right: -60,
   },
+
   profileHeader: {
     alignItems: 'center',
     paddingTop: 64, paddingBottom: 32, paddingHorizontal: 24,
   },
   avatarRing: {
     width: 100, height: 100, borderRadius: 50,
-    borderWidth: 2, borderColor: '#E85D26',
-    padding: 3, marginBottom: 16,
-    shadowColor: '#E85D26', shadowOffset: { width: 0, height: 0 },
+    borderWidth: 2, padding: 3, marginBottom: 16,
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5, shadowRadius: 16, elevation: 10,
   },
   avatarInner: {
     flex: 1, borderRadius: 44,
-    backgroundColor: 'rgba(232,93,38,0.2)',
     alignItems: 'center', justifyContent: 'center',
   },
-  avatarInitial:  { fontSize: 38, fontWeight: '900', color: '#E85D26' },
-  profileName:    { fontSize: 24, fontWeight: '900', color: '#FFFFFF', marginBottom: 4, letterSpacing: -0.3 },
-  profileEmail:   { fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 10 },
-  locationRow:    { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 14 },
-  locationText:   { fontSize: 12, color: 'rgba(255,255,255,0.35)' },
+  avatarInitial:   { fontSize: 38, fontWeight: '900' },
+  profileName:     { fontSize: 24, fontWeight: '900', color: '#FFFFFF', marginBottom: 4, letterSpacing: -0.3 },
+  profileEmail:    { fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 10 },
+  locationRow:     { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 14 },
+  locationText:    { fontSize: 12, color: 'rgba(255,255,255,0.35)' },
   memberBadge: {
     backgroundColor: 'rgba(245,158,11,0.15)',
     borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)',
@@ -253,7 +259,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   favName:  { flex: 1, fontSize: 14, fontWeight: '600', color: '#FFFFFF' },
-  favPrice: { fontSize: 14, fontWeight: '800', color: '#E85D26' },
+  favPrice: { fontSize: 14, fontWeight: '800' },
+
+  colorRow: {
+    flexDirection: 'row', gap: 12,
+    paddingVertical: 16, flexWrap: 'wrap',
+  },
+  colorDot: {
+    width: 36, height: 36, borderRadius: 18,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  colorDotActive: {
+    borderWidth: 3,
+    shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 6, elevation: 4,
+  },
+  colorCheck: { color: '#FFFFFF', fontSize: 16, fontWeight: '900' },
 
   settingRow: {
     flexDirection: 'row', alignItems: 'center', gap: 14,

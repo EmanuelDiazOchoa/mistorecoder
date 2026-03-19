@@ -12,6 +12,7 @@ import { loadOrders } from './src/redux/ordersSlice';
 import { setUser } from './src/features/auth/authSlice';
 import { getSession } from './src/service/sessionStorage';
 import { loadFavorites } from './src/redux/favoritesSlice';
+import { setAccentColor } from './src/redux/uiSlice';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -22,17 +23,19 @@ function Root() {
   useEffect(() => {
     (async () => {
       
-      const [darkPref, ordersData, session, favoritesData] = await Promise.all([
+      const [darkPref, ordersData, session, favoritesData, accentPref] = await Promise.all([
         AsyncStorage.getItem('darkMode'),
         AsyncStorage.getItem('orders'),
         getSession(),
         AsyncStorage.getItem('favorites'),
+        AsyncStorage.getItem('accentColor'),
       ]);
 
       dispatch(loadCartFromStorage());
-      if (darkPref !== null) dispatch(setDarkMode(JSON.parse(darkPref)));
-      if (ordersData)        dispatch(loadOrders(JSON.parse(ordersData)));
-      if (favoritesData)     dispatch(loadFavorites(JSON.parse(favoritesData)));
+      if (darkPref !== null)  dispatch(setDarkMode(JSON.parse(darkPref)));
+      if (ordersData)         dispatch(loadOrders(JSON.parse(ordersData)));
+      if (favoritesData)      dispatch(loadFavorites(JSON.parse(favoritesData)));
+      if (accentPref)         dispatch(setAccentColor(accentPref));
 
       if (session?.email && session?.uid) {
         dispatch(setUser({ email: session.email, uid: session.uid }));

@@ -14,6 +14,14 @@ import { setAccentColor, ACCENT_COLORS } from '../redux/uiSlice';
 import { clearSession } from '../service/sessionStorage';
 import { useTheme } from '../hooks/useTheme';
 
+
+const isLightColor = (hex) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
+};
+
 function StatCard({ label, value, icon, color, delay }) {
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -81,7 +89,9 @@ export default function ProfileScreen() {
   const initial  = username.charAt(0).toUpperCase();
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    
+<View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+  <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <StatusBar barStyle="light-content" />
       <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <View style={[styles.bgGlow1, { backgroundColor: accentColor }]} />
@@ -146,36 +156,43 @@ export default function ProfileScreen() {
         )}
 
         <Animated.View style={[styles.section, {
-          opacity: contentAnim,
-          transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
-        }]}>
-          <Text style={styles.sectionLabel}>COLOR DE ACENTO</Text>
-          <View style={styles.colorRow}>
-            {ACCENT_COLORS.map((color) => (
-              <Pressable
-                key={color}
-                onPress={() => dispatch(setAccentColor(color))}
-                style={[
-                  styles.colorDot,
-                  { backgroundColor: color },
-                  accentColor === color && [styles.colorDotActive, { borderColor: '#FFFFFF' }],
-                ]}
-              >
-                {accentColor === color && (
-                  <Text style={styles.colorCheck}>✓</Text>
-                )}
-              </Pressable>
-            ))}
-          </View>
-
-          <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
-            <View style={[styles.settingIcon, { backgroundColor: `${accentColor}20` }]}>
-              <MaterialIcons name="info-outline" size={18} color={accentColor} />
+            opacity: contentAnim,
+            transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+          }]}>
+            <Text style={styles.sectionLabel}>COLOR DE ACENTO</Text>
+            <View style={styles.colorRow}>
+              {ACCENT_COLORS.map((color) => {
+                const isSelected = accentColor === color;
+                return (
+                  <Pressable
+                    key={color}
+                    onPress={() => dispatch(setAccentColor(color))}
+                    style={[
+                      styles.colorDot,
+                      { backgroundColor: color },
+                      isSelected && [styles.colorDotActive, { borderColor: '#FFFFFF', shadowColor: color }],
+                    ]}
+                  >
+                    {isSelected && (
+                      <Text style={[
+                        styles.colorCheck,
+                        
+                        { color: isLightColor(color) ? '#0A0A0F' : '#FFFFFF' }
+                      ]}>✓</Text>
+                    )}
+                  </Pressable>
+                );
+              })}
             </View>
-            <Text style={styles.settingText}>Versión</Text>
-            <Text style={styles.settingValue}>Roma Store 1.0</Text>
-          </View>
-        </Animated.View>
+
+            <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
+              <View style={[styles.settingIcon, { backgroundColor: `${accentColor}20` }]}>
+                <MaterialIcons name="info-outline" size={18} color={accentColor} />
+              </View>
+              <Text style={styles.settingText}>Versión</Text>
+              <Text style={styles.settingValue}>Roma Store 1.0</Text>
+            </View>
+          </Animated.View>
 
         
         <Animated.View style={{ opacity: contentAnim }}>

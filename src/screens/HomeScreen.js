@@ -172,8 +172,9 @@ export default function HomeScreen({ navigation }) {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-    <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
+  
+  <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+  <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <StatusBar barStyle="light-content" />
       <FlatList
         data={filtered}

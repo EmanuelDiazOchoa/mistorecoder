@@ -1,4 +1,4 @@
-
+// Determina si un color necesita texto oscuro encima
 const isLightColor = (hex) => {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -8,18 +8,6 @@ const isLightColor = (hex) => {
 };
 
 export const palette = {
-  light: {
-    background: '#FAF8F5',
-    surface: '#FFFFFF',
-    surfaceAlt: '#F2EDE8',
-    border: '#E8E0D8',
-    text: '#1A1208',
-    textSecondary: '#6B5E52',
-    textMuted: '#A8998E',
-    tabBar: '#FFFFFF',
-    card: '#FFFFFF',
-    input: '#F5F0EB',
-  },
   dark: {
     background: '#0A0A0F',
     surface: '#111018',
@@ -58,14 +46,12 @@ export const shadows = {
   },
 };
 
-export const getTheme = (isDark, accentColor = '#E85D26') => {
-  const lightAccent = isLightColor(accentColor);
-  return {
-    colors: isDark ? palette.dark : palette.light,
-    shadows,
-    isDark,
-    primary: accentColor,
-    onPrimary: lightAccent ? '#1A1208' : '#FFFFFF',
-    bgTint: `${accentColor}14`,
-  };
-};
+export const getTheme = (isDark, accentColor = '#E85D26') => ({
+  colors: palette.dark,  // siempre dark, ignoramos isDark por ahora
+  shadows,
+  isDark: true,
+  primary: accentColor,
+  onPrimary: isLightColor(accentColor) ? '#0A0A0F' : '#FFFFFF',
+  // Tinte MUY sutil sobre negro — mezcla del acento con el fondo oscuro
+  bgTint: `${accentColor}08`,  // 3% opacidad — apenas perceptible sobre negro
+});

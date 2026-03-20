@@ -82,15 +82,17 @@ export default function OrdersScreen() {
   }, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
+    
+ <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+  <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
+  
       <StatusBar barStyle="light-content" />
 
-      {/* Glows decorativos */}
+      
       <View style={[styles.bgGlow, { backgroundColor: theme.primary }]} />
       <View style={styles.bgGlow2} />
 
-      {/* Header */}
+      
       <Animated.View style={[styles.header, {
         opacity: titleAnim,
         transform: [{ translateY: titleAnim.interpolate({ inputRange: [0, 1], outputRange: [-16, 0] }) }],

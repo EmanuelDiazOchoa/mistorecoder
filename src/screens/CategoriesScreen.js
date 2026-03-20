@@ -69,8 +69,8 @@ export default function CategoriesScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+  <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <StatusBar barStyle="light-content" />
       <View style={styles.bgGlow} />
 
@@ -106,7 +106,7 @@ export default function CategoriesScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0A0F' },
+  container: { flex: 1 },
   bgGlow: {
     position: 'absolute', width: 280, height: 280, borderRadius: 140,
     backgroundColor: '#7C3AED', opacity: 0.06, top: -60, right: -60,

@@ -18,7 +18,8 @@ import * as Notifications from 'expo-notifications';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,   
+    shouldShowList: true,     
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -112,14 +113,16 @@ export default function CartScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar barStyle="light-content" />
+  
+  
 
-      {/* Tinte de fondo dinámico */}
+      
       <View style={[StyleSheet.absoluteFill, { backgroundColor: `${accentColor}0D`, pointerEvents: 'none' }]} />
       <View style={[styles.bgGlow, { backgroundColor: accentColor }]} />
 
-      {/* Modal confirmar pedido */}
+      
       <ConfirmModal
         visible={modal.type === 'purchase'}
         title="Confirmar pedido"
@@ -132,7 +135,7 @@ export default function CartScreen() {
         onCancel={() => setModal({ type: null })}
       />
 
-      {/* Modal vaciar carrito */}
+      
       <ConfirmModal
         visible={modal.type === 'clear'}
         title="Vaciar carrito"
@@ -209,7 +212,7 @@ export default function CartScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0A0F' },
+  container: { flex: 1 },
   bgGlow: {
     position: 'absolute', width: 300, height: 300, borderRadius: 150,
     opacity: 0.05, top: -100, right: -80,

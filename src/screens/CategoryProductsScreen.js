@@ -62,7 +62,7 @@ export default function CategoryProductsScreen({ route, navigation }) {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <StatusBar barStyle="light-content" />
       <View style={[styles.bgGlow, { backgroundColor: color }]} />
@@ -110,7 +110,7 @@ export default function CategoryProductsScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0A0F' },
+  container: { flex: 1 },
   bgGlow: {
     position: 'absolute', width: 260, height: 260, borderRadius: 130,
     opacity: 0.07, top: -60, right: -60,

@@ -158,8 +158,8 @@ export default function HomeScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <StatusBar barStyle="light-content" />
       <FlatList
         data={filtered}
@@ -195,7 +195,7 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0A0F' },
+  container: { flex: 1 },
 
   header: { paddingTop: 56, paddingHorizontal: 20, paddingBottom: 0 },
   headerTop: {
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
 
   searchWrap: { paddingHorizontal: 20, marginBottom: 8 },
 
-  // Chips ahora con scroll horizontal — sin flexWrap
+  
   filtersWrap: {
     paddingHorizontal: 20,
     paddingBottom: 20,

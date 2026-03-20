@@ -63,5 +63,5 @@ export const getTheme = (isDark, accentColor = '#E85D26') => ({
   shadows,
   isDark,
   primary: accentColor,
-  bgTint: `${accentColor}0D`,  
+  bgTint: `${accentColor}14`,
 });

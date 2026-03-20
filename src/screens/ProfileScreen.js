@@ -12,6 +12,7 @@ import { auth } from '../service/firebase';
 import { clearUser } from '../features/auth/authSlice';
 import { setAccentColor, ACCENT_COLORS } from '../redux/uiSlice';
 import { clearSession } from '../service/sessionStorage';
+import { useTheme } from '../hooks/useTheme';
 
 function StatCard({ label, value, icon, color, delay }) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -38,6 +39,7 @@ export default function ProfileScreen() {
   const cartCount   = useSelector((state) => state.cart.items.length);
   const favorites   = useSelector((state) => state.favorites.items);
   const accentColor = useSelector((state) => state.ui.accentColor ?? '#E85D26');
+  const theme = useTheme();
   const dispatch    = useDispatch();
   const navigation  = useNavigation();
   const [location, setLocation] = useState(null);
@@ -79,14 +81,14 @@ export default function ProfileScreen() {
   const initial  = username.charAt(0).toUpperCase();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar barStyle="light-content" />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <View style={[styles.bgGlow1, { backgroundColor: accentColor }]} />
       <View style={styles.bgGlow2} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
 
-        {/* Header del perfil */}
         <Animated.View style={[styles.profileHeader, {
           opacity: headerAnim,
           transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
@@ -114,7 +116,6 @@ export default function ProfileScreen() {
           </View>
         </Animated.View>
 
-        {/* Stats */}
         <Animated.View style={[styles.statsRow, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
@@ -124,7 +125,6 @@ export default function ProfileScreen() {
           <StatCard label="Favoritos"  value={favorites.length} icon="favorite"      color="#FF4D6D"     delay={400} />
         </Animated.View>
 
-        {/* Favoritos guardados */}
         {favorites.length > 0 && (
           <Animated.View style={[styles.section, {
             opacity: contentAnim,
@@ -145,7 +145,6 @@ export default function ProfileScreen() {
           </Animated.View>
         )}
 
-        {/* Selector de color de acento */}
         <Animated.View style={[styles.section, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
@@ -178,7 +177,7 @@ export default function ProfileScreen() {
           </View>
         </Animated.View>
 
-        {/* Logout */}
+        
         <Animated.View style={{ opacity: contentAnim }}>
           <Pressable
             style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
@@ -196,7 +195,7 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0A0F' },
+  container: { flex: 1 },
   bgGlow1: {
     position: 'absolute', width: 300, height: 300, borderRadius: 150,
     opacity: 0.06, top: -60, left: -80,

@@ -79,8 +79,8 @@ export default function OrdersScreen() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <StatusBar barStyle="light-content" />
       <View style={styles.bgGlow} />
       <View style={styles.bgGlow2} />
@@ -119,7 +119,7 @@ export default function OrdersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0A0F' },
+  container: { flex: 1 },
   bgGlow: {
     position: 'absolute', width: 250, height: 250, borderRadius: 125,
     backgroundColor: '#7C3AED', opacity: 0.06, top: -50, right: -60,

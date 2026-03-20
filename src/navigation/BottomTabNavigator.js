@@ -12,7 +12,6 @@ import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
-// ─── SVG Icon set (custom premium icons, no library needed) ──────────────────
 
 function IconHome({ color, size = 24 }) {
   return (
@@ -86,9 +85,7 @@ const TABS = [
   { name: 'Profile',    label: 'Perfil',     Icon: IconUser    },
 ];
 
-// ─── Single tab button ────────────────────────────────────────────────────────
-
-function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress }) {
+function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress, accentColor }) {
   const scale  = useRef(new Animated.Value(1)).current;
   const glow   = useRef(new Animated.Value(0)).current;
   const labelO = useRef(new Animated.Value(isFocused ? 1 : 0)).current;
@@ -110,27 +107,23 @@ function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress }) {
     ]).start();
   }, [isFocused]);
 
-  const ACTIVE   = '#E85D26';
-  const INACTIVE = 'rgba(255,255,255,0.3)';
-  const color    = isFocused ? ACTIVE : INACTIVE;
+  const color = isFocused ? accentColor : 'rgba(255,255,255,0.3)';
 
-  const pillWidth = glow.interpolate({ inputRange: [0, 1], outputRange: [0, 48] });
+  const pillWidth   = glow.interpolate({ inputRange: [0, 1], outputRange: [0, 48] });
   const pillOpacity = glow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.18] });
 
   return (
     <Pressable onPress={onPress} style={styles.tabBtn}>
       <Animated.View style={[styles.iconWrap, { transform: [{ scale }] }]}>
-        {/* Active pill glow */}
         <Animated.View style={[
           styles.activePill,
-          { width: pillWidth, opacity: pillOpacity },
+          { width: pillWidth, opacity: pillOpacity, backgroundColor: accentColor },
         ]} />
 
         <Icon color={color} size={22} />
 
-        {/* Cart badge */}
         {isCart && cartCount > 0 && (
-          <View style={styles.badge}>
+          <View style={[styles.badge, { backgroundColor: accentColor }]}>
             <Text style={styles.badgeText}>{cartCount > 9 ? '9+' : cartCount}</Text>
           </View>
         )}
@@ -143,21 +136,17 @@ function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress }) {
   );
 }
 
-// ─── Custom tab bar ───────────────────────────────────────────────────────────
-
 function CustomTabBar({ state, navigation }) {
-  const cartCount = useSelector((s) => s.cart.items.length);
+  const cartCount   = useSelector((s) => s.cart.items.length);
+  const accentColor = useSelector((s) => s.ui.accentColor ?? '#E85D26');
 
   return (
     <View style={styles.barOuter}>
       <View style={styles.barInner}>
-        {/* Subtle top border highlight */}
         <View style={styles.topLine} />
-
         {state.routes.map((route, index) => {
-          const tab      = TABS.find(t => t.name === route.name);
+          const tab       = TABS.find(t => t.name === route.name);
           const isFocused = state.index === index;
-
           return (
             <TabButton
               key={route.key}
@@ -166,6 +155,7 @@ function CustomTabBar({ state, navigation }) {
               Icon={tab?.Icon || IconHome}
               isCart={route.name === 'Cart'}
               cartCount={cartCount}
+              accentColor={accentColor}
               onPress={() => { if (!isFocused) navigation.navigate(route.name); }}
             />
           );
@@ -174,8 +164,6 @@ function CustomTabBar({ state, navigation }) {
     </View>
   );
 }
-
-// ─── Navigator ────────────────────────────────────────────────────────────────
 
 export default function BottomTabNavigator() {
   return (
@@ -191,8 +179,6 @@ export default function BottomTabNavigator() {
     </Tab.Navigator>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   barOuter: {
@@ -238,10 +224,9 @@ const styles = StyleSheet.create({
     height: 32,
   },
   activePill: {
-    position: 'absolute',
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E85D26',
+  position: 'absolute',
+  height: 32,
+  borderRadius: 16,
   },
   tabLabel: {
     fontSize: 10,
@@ -249,16 +234,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   badge: {
-    position: 'absolute',
-    top: -3, right: -2,
-    minWidth: 15, height: 15,
-    borderRadius: 8,
-    backgroundColor: '#E85D26',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-    borderWidth: 1.5,
-    borderColor: '#111018',
-  },
+  position: 'absolute',
+  top: -3, right: -2,
+  minWidth: 15, height: 15,
+  borderRadius: 8,
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingHorizontal: 3,
+  borderWidth: 1.5,
+  borderColor: '#111018',
+},
   badgeText: { color: '#fff', fontSize: 8, fontWeight: '900' },
 });

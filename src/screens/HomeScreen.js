@@ -103,15 +103,21 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.greeting}>{greeting()}</Text>
             <Text style={styles.username}>{username} 👋</Text>
           </View>
-          <View style={styles.logoBadge}>
+          <View style={[styles.logoBadge, {
+            backgroundColor: `${theme.primary}20`,
+            borderColor: `${theme.primary}40`,
+          }]}>
             <Text style={styles.logoBadgeText}>🍞</Text>
           </View>
         </View>
 
-        <View style={styles.promoBanner}>
-          <View style={styles.promoGlow} />
-          <View style={styles.promoContent}>
-            <Text style={styles.promoTag}>✨ OFERTA DEL DÍA</Text>
+        <View style={[styles.promoBanner, {
+              backgroundColor: `${theme.primary}18`,
+              borderColor: `${theme.primary}30`,
+            }]}>
+              <View style={[styles.promoGlow, { backgroundColor: theme.primary }]} />
+              <View style={styles.promoContent}>
+            <Text style={[styles.promoTag, { color: theme.primary }]}>✨ OFERTA DEL DÍA</Text>
             <Text style={styles.promoTitle}>Panadería{'\n'}Artesanal</Text>
             <Text style={styles.promoSub}>Recetas de siempre,{'\n'}sabor único</Text>
           </View>
@@ -126,7 +132,6 @@ export default function HomeScreen({ navigation }) {
         <SearchBar value={search} onChangeText={setSearch} />
       </Animated.View>
 
-      {/* Filtros con scroll horizontal */}
       <Animated.ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -136,10 +141,19 @@ export default function HomeScreen({ navigation }) {
         {FILTERS.map((f) => (
           <Pressable
             key={f.key}
-            style={[styles.chip, activeFilter === f.key && styles.chipActive]}
+            style={[
+              styles.chip,
+              activeFilter === f.key && {
+                backgroundColor: theme.primary,
+                borderColor: theme.primary,
+              }
+            ]}
             onPress={() => setActiveFilter(f.key)}
           >
-            <Text style={[styles.chipText, activeFilter === f.key && styles.chipTextActive]}>
+            <Text style={[
+              styles.chipText,
+              activeFilter === f.key && { color: theme.onPrimary }
+            ]}>
               {f.label}
             </Text>
           </Pressable>
@@ -244,10 +258,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
   },
-  chipActive: {
-    backgroundColor: '#E85D26',
-    borderColor: '#E85D26',
-  },
+  
+  chipActive: {},  
   chipText: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.5)' },
   chipTextActive: { color: '#FFFFFF' },
 

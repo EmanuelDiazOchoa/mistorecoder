@@ -1,10 +1,13 @@
-export const palette = {
-  primary: '#E85D26',
-  primaryDark: '#C44A18',
-  primaryLight: '#FF7A47',
-  success: '#27AE60',
-  danger: '#E63946',
 
+const isLightColor = (hex) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.55;
+};
+
+export const palette = {
   light: {
     background: '#FAF8F5',
     surface: '#FFFFFF',
@@ -17,19 +20,18 @@ export const palette = {
     card: '#FFFFFF',
     input: '#F5F0EB',
   },
-
   dark: {
-  background: '#0A0A0F',   
-  surface: '#111018',      
-  surfaceAlt: '#1A1A2E',   
-  border: 'rgba(255,255,255,0.08)',  
-  text: '#FFFFFF',
-  textSecondary: 'rgba(255,255,255,0.55)',
-  textMuted: 'rgba(255,255,255,0.3)',
-  tabBar: '#111018',
-  card: 'rgba(255,255,255,0.05)',
-  input: 'rgba(255,255,255,0.08)',
-},
+    background: '#0A0A0F',
+    surface: '#111018',
+    surfaceAlt: '#1A1A2E',
+    border: 'rgba(255,255,255,0.08)',
+    text: '#FFFFFF',
+    textSecondary: 'rgba(255,255,255,0.55)',
+    textMuted: 'rgba(255,255,255,0.3)',
+    tabBar: '#111018',
+    card: 'rgba(255,255,255,0.05)',
+    input: 'rgba(255,255,255,0.08)',
+  },
 };
 
 export const shadows = {
@@ -56,12 +58,14 @@ export const shadows = {
   },
 };
 
-
-export const getTheme = (isDark, accentColor = '#E85D26') => ({
-  ...palette,
-  colors: isDark ? palette.dark : palette.light,
-  shadows,
-  isDark,
-  primary: accentColor,
-  bgTint: `${accentColor}14`,
-});
+export const getTheme = (isDark, accentColor = '#E85D26') => {
+  const lightAccent = isLightColor(accentColor);
+  return {
+    colors: isDark ? palette.dark : palette.light,
+    shadows,
+    isDark,
+    primary: accentColor,
+    onPrimary: lightAccent ? '#1A1208' : '#FFFFFF',
+    bgTint: `${accentColor}14`,
+  };
+};

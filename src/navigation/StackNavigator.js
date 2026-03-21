@@ -1,4 +1,3 @@
-// src/navigation/StackNavigator.js
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTabNavigator from './BottomTabNavigator';
@@ -9,14 +8,14 @@ import CategoryProductsScreen from '../screens/CategoryProductsScreen';
 
 const Stack = createNativeStackNavigator();
 
-const StackNavigator = ({ initialRoute = 'Register' }) => {
+const StackNavigator = ({ initialRoute = 'Login' }) => {
   return (
     <Stack.Navigator
       initialRouteName={initialRoute}
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name="Register"  component={RegisterScreen} />
       <Stack.Screen name="Login"     component={LoginScreen} />
+      <Stack.Screen name="Register"  component={RegisterScreen} />
       <Stack.Screen name="Main"      component={BottomTabNavigator} />
       <Stack.Screen
         name="Details"

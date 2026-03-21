@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import { makeRedirectUri } from 'expo-auth-session';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';
@@ -53,11 +54,11 @@ export default function RegisterScreen() {
     ]).start();
   }, []);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-  androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
-  webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
-  redirectUri: makeRedirectUri({ scheme: 'mistore' }),
-});
+    const [request, response, promptAsync] = Google.useAuthRequest({
+      androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
+      webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
+      redirectUri: 'https://auth.expo.io/@emanueldiazochoa/mistore',
+    });
 
   useEffect(() => {
     if (response?.type === 'success') {

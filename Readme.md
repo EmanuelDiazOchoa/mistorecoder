@@ -10,12 +10,12 @@ Aplicación móvil de ecommerce para una panadería artesanal, desarrollada con 
 
 <div align="center">
 
-| Login | Register | Home |
-|:-----:|:--------:|:----:|
+|                      Login                             |                         Register                          |                        Home                           |
+|:------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------:|
 | <img src="assets/screenshots/login.webp" width="180"/> | <img src="assets/screenshots/register.webp" width="180"/> | <img src="assets/screenshots/home.webp" width="180"/> |
 
-| Detalle | Carrito | Perfil |
-|:-------:|:-------:|:------:|
+|                     Detalle                             |                        Carrito                        |                          Perfil                          |
+|:-------------------------------------------------------:|:-----------------------------------------------------:|:--------------------------------------------------------:|
 | <img src="assets/screenshots/detail.webp" width="180"/> | <img src="assets/screenshots/cart.webp" width="180"/> | <img src="assets/screenshots/profile.webp" width="180"/> |
 
 </div>

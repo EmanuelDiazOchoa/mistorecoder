@@ -8,11 +8,17 @@ Aplicación móvil de ecommerce para una panadería artesanal, desarrollada con 
 
 ## 📸 Screenshots
 
-> _Próximamente — grabá el GIF y agregá las capturas en `assets/screenshots/`_
+<div align="center">
 
-| Login | Home | Detalle | Carrito | Perfil |
-|-------|------|---------|---------|--------|
-| ![](assets/screenshots/login.png) | ![](assets/screenshots/home.png) | ![](assets/screenshots/detail.png) | ![](assets/screenshots/cart.png) | ![](assets/screenshots/profile.png) |
+| Login | Register | Home |
+|:-----:|:--------:|:----:|
+| <img src="assets/screenshots/login.webp" width="180"/> | <img src="assets/screenshots/register.webp" width="180"/> | <img src="assets/screenshots/home.webp" width="180"/> |
+
+| Detalle | Carrito | Perfil |
+|:-------:|:-------:|:------:|
+| <img src="assets/screenshots/detail.webp" width="180"/> | <img src="assets/screenshots/cart.webp" width="180"/> | <img src="assets/screenshots/profile.webp" width="180"/> |
+
+</div>
 
 ---
 
@@ -50,7 +56,7 @@ Aplicación móvil de ecommerce para una panadería artesanal, desarrollada con 
 | expo-sqlite | Sesión persistente entre cierres de app |
 | expo-notifications | Notificaciones locales al confirmar pedido |
 | expo-location | Ubicación del usuario en perfil |
-| expo-auth-session | Google OAuth |
+| @react-native-google-signin/google-signin | Google OAuth nativo |
 | React Navigation | Navegación stack + tabs |
 | react-native-svg | Iconos del tab bar |
 | react-native-reanimated | Animaciones avanzadas |
@@ -146,7 +152,8 @@ Los productos en Realtime Database siguen esta estructura:
 
 ```
 roma-store/
-├── assets/                  # Imágenes locales y screenshots
+├── assets/
+│   └── screenshots/         # Capturas de pantalla
 ├── src/
 │   ├── components/          # ProductCard, SearchBar, SkeletonCard,
 │   │                        # EmptyState, Toast, ConfirmModal
@@ -207,7 +214,7 @@ El helper `isLightColor()` garantiza legibilidad del texto sobre cualquier acent
 La app soporta dos métodos de login:
 
 - **Email + contraseña** vía Firebase Auth
-- **Google OAuth** vía `expo-auth-session` con cliente Android configurado en Google Cloud Console
+- **Google OAuth** vía `@react-native-google-signin/google-signin` (flujo nativo Android)
 
 La sesión se persiste en SQLite (`expo-sqlite`) para que el usuario no deba loguearse en cada apertura.
 
@@ -224,8 +231,8 @@ La sesión se persiste en SQLite (`expo-sqlite`) para que el usuario no deba log
 
 ## 👤 Autor
 
-**Emanuel Diaz Ochoa**  
-[GitHub](https://github.com/EmanuelDiazOchoa) · [LinkedIn](#) ← _agregar link_
+**Emanuel Diaz Ochoa**
+[GitHub](https://github.com/EmanuelDiazOchoa) · [LinkedIn](#)
 
 ---
 

@@ -54,10 +54,9 @@ export default function RegisterScreen() {
   }, []);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
-    webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
-    redirectUri: 'https://auth.expo.io/@emanueldiazochoa/mistore',
-  });
+  androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
+  webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
+});
 
   useEffect(() => {
     if (response?.type === 'success') {
@@ -137,7 +136,7 @@ export default function RegisterScreen() {
 
           <Pressable
             style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed]}
-            onPress={() => promptAsync({ useProxy: true })}
+            onPress={() => promptAsync()}
             disabled={!request || googleLoading}
           >
             <View style={styles.googleIconWrap}>

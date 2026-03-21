@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import {
   View, Text, FlatList, StyleSheet, Image,
-  Pressable, StatusBar, Animated, StyleSheet as RN,
+  Pressable, StatusBar, Animated,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -15,11 +15,10 @@ import { useTheme } from '../hooks/useTheme';
 import ConfirmModal from '../components/ConfirmModal';
 import * as Notifications from 'expo-notifications';
 
-
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowBanner: true,   
-    shouldShowList: true,     
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -52,7 +51,6 @@ function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove
       ],
     }]}>
       <Image source={getProductImage(item.category, item.image)} style={styles.itemImage} />
-
       <View style={styles.itemInfo}>
         <Text style={styles.itemName} numberOfLines={1}>
           {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
@@ -60,7 +58,6 @@ function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove
         <Text style={[styles.itemPrice, { color: accentColor }]}>
           ${(item.price * item.quantity).toFixed(2)}
         </Text>
-
         <View style={styles.qtyRow}>
           <Pressable onPress={onDecrement} style={styles.qtyBtn} hitSlop={8}>
             <Text style={styles.qtyBtnText}>−</Text>
@@ -71,7 +68,6 @@ function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove
           </Pressable>
         </View>
       </View>
-
       <Pressable onPress={handleRemove} style={styles.removeBtn} hitSlop={10}>
         <MaterialIcons name="delete-outline" size={22} color="#FF4D4D" />
       </Pressable>
@@ -113,19 +109,12 @@ export default function CartScreen() {
   };
 
   return (
-    
-  <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-  <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
-  
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar barStyle="light-content" />
-  
-  
-
-      
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: `${accentColor}0D`, pointerEvents: 'none' }]} />
+      {/* Un solo tinte — sin duplicado */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <View style={[styles.bgGlow, { backgroundColor: accentColor }]} />
 
-      
       <ConfirmModal
         visible={modal.type === 'purchase'}
         title="Confirmar pedido"
@@ -138,7 +127,6 @@ export default function CartScreen() {
         onCancel={() => setModal({ type: null })}
       />
 
-      
       <ConfirmModal
         visible={modal.type === 'clear'}
         title="Vaciar carrito"
@@ -203,8 +191,8 @@ export default function CartScreen() {
                 ]}
                 onPress={handlePurchase}
               >
-                <Text style={styles.buyBtnText}>Finalizar pedido</Text>
-                <MaterialIcons name="arrow-forward-ios" size={14} color="#fff" />
+                <Text style={[styles.buyBtnText, { color: theme.onPrimary }]}>Finalizar pedido</Text>
+                <MaterialIcons name="arrow-forward-ios" size={14} color={theme.onPrimary} />
               </Pressable>
             </View>
           </Animated.View>
@@ -227,7 +215,6 @@ const styles = StyleSheet.create({
   title:    { fontSize: 32, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 },
   clearBtn: { fontSize: 14, fontWeight: '700', color: '#FF4D4D' },
   list:     { paddingHorizontal: 20, paddingBottom: 200 },
-
   item: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.05)',
@@ -238,7 +225,6 @@ const styles = StyleSheet.create({
   itemInfo:  { flex: 1 },
   itemName:  { fontSize: 15, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 },
   itemPrice: { fontSize: 15, fontWeight: '800', marginBottom: 8 },
-
   qtyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   qtyBtn: {
     width: 28, height: 28, borderRadius: 8,
@@ -249,12 +235,10 @@ const styles = StyleSheet.create({
   qtyBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', lineHeight: 20 },
   qtyValue:   { color: '#FFFFFF', fontSize: 15, fontWeight: '800', minWidth: 20, textAlign: 'center' },
   removeBtn:  { padding: 8 },
-
   empty:      { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   emptyEmoji: { fontSize: 72, marginBottom: 16 },
   emptyTitle: { fontSize: 20, fontWeight: '800', color: '#FFFFFF', marginBottom: 8, textAlign: 'center' },
   emptySub:   { fontSize: 14, color: 'rgba(255,255,255,0.35)', textAlign: 'center', lineHeight: 20 },
-
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: 'rgba(15,10,30,0.95)',
@@ -275,5 +259,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.5, shadowRadius: 14, elevation: 8,
   },
-  buyBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  buyBtnText: { fontSize: 16, fontWeight: '800' },
 });

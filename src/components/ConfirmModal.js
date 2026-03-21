@@ -6,6 +6,13 @@ import {
 
 const { height } = Dimensions.get('window');
 
+const isLightColor = (hex) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
+};
+
 export default function ConfirmModal({
   visible, title, subtitle, body,
   confirmText = 'Confirmar', cancelText = 'Cancelar',
@@ -29,22 +36,20 @@ export default function ConfirmModal({
     }
   }, [visible]);
 
+  // Color del texto sobre el botón confirmar según luminosidad
+  const confirmBg       = confirmDestructive ? '#FF4D4D' : accentColor;
+  const confirmTextColor = isLightColor(confirmBg) ? '#0A0A0F' : '#FFFFFF';
+
   return (
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
-      {/* Backdrop */}
       <Animated.View style={[styles.backdrop, { opacity: backdropOp }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} />
       </Animated.View>
 
-      {/* Sheet */}
       <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
-        {/* Handle */}
         <View style={styles.handle} />
-
-        {/* Glow */}
         <View style={[styles.glow, { backgroundColor: accentColor }]} />
 
-        {/* Icon area */}
         <View style={[styles.iconWrap, { backgroundColor: `${accentColor}20`, borderColor: `${accentColor}40` }]}>
           <Text style={styles.iconEmoji}>{confirmDestructive ? '🗑️' : '🛒'}</Text>
         </View>
@@ -53,10 +58,8 @@ export default function ConfirmModal({
         {subtitle && <Text style={[styles.subtitle, { color: accentColor }]}>{subtitle}</Text>}
         {body && <Text style={styles.body}>{body}</Text>}
 
-        {/* Divider */}
         <View style={styles.divider} />
 
-        {/* Buttons */}
         <View style={styles.btnRow}>
           <Pressable
             style={({ pressed }) => [styles.btnCancel, pressed && { opacity: 0.7 }]}
@@ -68,16 +71,17 @@ export default function ConfirmModal({
           <Pressable
             style={({ pressed }) => [
               styles.btnConfirm,
-              { backgroundColor: confirmDestructive ? '#FF4D4D' : accentColor },
+              { backgroundColor: confirmBg },
               pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] },
             ]}
             onPress={onConfirm}
           >
-            <Text style={styles.btnConfirmText}>{confirmText}</Text>
+            <Text style={[styles.btnConfirmText, { color: confirmTextColor }]}>
+              {confirmText}
+            </Text>
           </Pressable>
         </View>
 
-        {/* Safe area spacer */}
         <View style={{ height: 24 }} />
       </Animated.View>
     </Modal>
@@ -132,5 +136,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.45, shadowRadius: 12, elevation: 8,
   },
-  btnConfirmText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
+  btnConfirmText: { fontSize: 15, fontWeight: '800' },
 });

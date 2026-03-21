@@ -1,25 +1,25 @@
 {
   "expo": {
-    "name": "mistore",
+    "name": "Roma Store",
     "slug": "mistore",
-    "version": "1.0.0",
     "scheme": "mistore",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-    "image": "./assets/splash-icon.png",
-    "resizeMode": "contain",
-    "backgroundColor": "#0A0A0F"
-},
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0A0F"
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "package": "com.emanueldiazochoa.mistore",
+      "package": "com.emanueldiazochoa.romastore",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0A0A0F"
       },
       "permissions": [
         "ACCESS_FINE_LOCATION",
@@ -35,7 +35,7 @@
         "projectId": "8187eb6f-8363-4452-bbfa-77bbd0c85bf9"
       }
     },
-      "plugins": [
+    "plugins": [
       "expo-dev-client",
       "expo-sqlite",
       [
@@ -47,6 +47,7 @@
       ],
       "expo-secure-store",
       "expo-web-browser"
-    ]
+    ],
+    "owner": "emanueldiazochoa"
   }
 }

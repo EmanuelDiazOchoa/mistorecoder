@@ -14,7 +14,6 @@ import { setAccentColor, ACCENT_COLORS } from '../redux/uiSlice';
 import { clearSession } from '../service/sessionStorage';
 import { useTheme } from '../hooks/useTheme';
 
-
 const isLightColor = (hex) => {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -47,7 +46,7 @@ export default function ProfileScreen() {
   const cartCount   = useSelector((state) => state.cart.items.length);
   const favorites   = useSelector((state) => state.favorites.items);
   const accentColor = useSelector((state) => state.ui.accentColor ?? '#E85D26');
-  const theme = useTheme();
+  const theme       = useTheme();
   const dispatch    = useDispatch();
   const navigation  = useNavigation();
   const [location, setLocation] = useState(null);
@@ -89,10 +88,9 @@ export default function ProfileScreen() {
   const initial  = username.charAt(0).toUpperCase();
 
   return (
-    
-<View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-  <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar barStyle="light-content" />
+      {/* Un solo tinte — sin duplicado */}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <View style={[styles.bgGlow1, { backgroundColor: accentColor }]} />
       <View style={styles.bgGlow2} />
@@ -108,10 +106,8 @@ export default function ProfileScreen() {
               <Text style={[styles.avatarInitial, { color: accentColor }]}>{initial}</Text>
             </View>
           </View>
-
           <Text style={styles.profileName}>{username}</Text>
           <Text style={styles.profileEmail}>{user?.email}</Text>
-
           {location && (
             <View style={styles.locationRow}>
               <MaterialIcons name="location-on" size={13} color={accentColor} />
@@ -120,7 +116,6 @@ export default function ProfileScreen() {
               </Text>
             </View>
           )}
-
           <View style={styles.memberBadge}>
             <Text style={styles.memberBadgeText}>⭐ Miembro Premium</Text>
           </View>
@@ -156,45 +151,41 @@ export default function ProfileScreen() {
         )}
 
         <Animated.View style={[styles.section, {
-            opacity: contentAnim,
-            transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
-          }]}>
-            <Text style={styles.sectionLabel}>COLOR DE ACENTO</Text>
-            <View style={styles.colorRow}>
-              {ACCENT_COLORS.map((color) => {
-                const isSelected = accentColor === color;
-                return (
-                  <Pressable
-                    key={color}
-                    onPress={() => dispatch(setAccentColor(color))}
-                    style={[
-                      styles.colorDot,
-                      { backgroundColor: color },
-                      isSelected && [styles.colorDotActive, { borderColor: '#FFFFFF', shadowColor: color }],
-                    ]}
-                  >
-                    {isSelected && (
-                      <Text style={[
-                        styles.colorCheck,
-                        
-                        { color: isLightColor(color) ? '#0A0A0F' : '#FFFFFF' }
-                      ]}>✓</Text>
-                    )}
-                  </Pressable>
-                );
-              })}
+          opacity: contentAnim,
+          transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+        }]}>
+          <Text style={styles.sectionLabel}>COLOR DE ACENTO</Text>
+          <View style={styles.colorRow}>
+            {ACCENT_COLORS.map((color) => {
+              const isSelected = accentColor === color;
+              return (
+                <Pressable
+                  key={color}
+                  onPress={() => dispatch(setAccentColor(color))}
+                  style={[
+                    styles.colorDot,
+                    { backgroundColor: color },
+                    isSelected && [styles.colorDotActive, { borderColor: '#FFFFFF', shadowColor: color }],
+                  ]}
+                >
+                  {isSelected && (
+                    <Text style={[styles.colorCheck, { color: isLightColor(color) ? '#0A0A0F' : '#FFFFFF' }]}>
+                      ✓
+                    </Text>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+          <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
+            <View style={[styles.settingIcon, { backgroundColor: `${accentColor}20` }]}>
+              <MaterialIcons name="info-outline" size={18} color={accentColor} />
             </View>
+            <Text style={styles.settingText}>Versión</Text>
+            <Text style={styles.settingValue}>Roma Store 1.0</Text>
+          </View>
+        </Animated.View>
 
-            <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
-              <View style={[styles.settingIcon, { backgroundColor: `${accentColor}20` }]}>
-                <MaterialIcons name="info-outline" size={18} color={accentColor} />
-              </View>
-              <Text style={styles.settingText}>Versión</Text>
-              <Text style={styles.settingValue}>Roma Store 1.0</Text>
-            </View>
-          </Animated.View>
-
-        
         <Animated.View style={{ opacity: contentAnim }}>
           <Pressable
             style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
@@ -221,7 +212,6 @@ const styles = StyleSheet.create({
     position: 'absolute', width: 200, height: 200, borderRadius: 100,
     backgroundColor: '#7C3AED', opacity: 0.06, top: 200, right: -60,
   },
-
   profileHeader: {
     alignItems: 'center',
     paddingTop: 64, paddingBottom: 32, paddingHorizontal: 24,
@@ -247,7 +237,6 @@ const styles = StyleSheet.create({
     borderRadius: 20, paddingHorizontal: 16, paddingVertical: 6,
   },
   memberBadgeText: { fontSize: 13, fontWeight: '700', color: '#F59E0B' },
-
   statsRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginBottom: 24 },
   stat: {
     flex: 1, alignItems: 'center', padding: 16, borderRadius: 20,
@@ -257,7 +246,6 @@ const styles = StyleSheet.create({
   statIcon:  { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   statValue: { fontSize: 22, fontWeight: '900', color: '#FFFFFF' },
   statLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.35)' },
-
   section: {
     marginHorizontal: 20, borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.04)',
@@ -268,7 +256,6 @@ const styles = StyleSheet.create({
     fontSize: 10, fontWeight: '800', letterSpacing: 1.8,
     color: 'rgba(255,255,255,0.25)', paddingTop: 16, paddingBottom: 10,
   },
-
   favRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingVertical: 10,
@@ -276,7 +263,6 @@ const styles = StyleSheet.create({
   },
   favName:  { flex: 1, fontSize: 14, fontWeight: '600', color: '#FFFFFF' },
   favPrice: { fontSize: 14, fontWeight: '800' },
-
   colorRow: {
     flexDirection: 'row', gap: 12,
     paddingVertical: 16, flexWrap: 'wrap',
@@ -287,10 +273,9 @@ const styles = StyleSheet.create({
   },
   colorDotActive: {
     borderWidth: 3,
-    shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 6, elevation: 4,
+    shadowOpacity: 0.4, shadowRadius: 6, elevation: 4,
   },
-  colorCheck: { color: '#FFFFFF', fontSize: 16, fontWeight: '900' },
-
+  colorCheck: { fontSize: 16, fontWeight: '900' },
   settingRow: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     paddingVertical: 14,
@@ -299,7 +284,6 @@ const styles = StyleSheet.create({
   settingIcon:  { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   settingText:  { flex: 1, fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
   settingValue: { fontSize: 13, color: 'rgba(255,255,255,0.35)' },
-
   logoutBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
     marginHorizontal: 20, paddingVertical: 16, borderRadius: 18,

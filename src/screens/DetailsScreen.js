@@ -25,7 +25,7 @@ function IconCart({ color = '#fff', size = 20 }) {
   );
 }
 
-function IconVerified({ color = '#E85D26', size = 18 }) {
+function IconVerified({ color, size = 18 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
@@ -34,7 +34,7 @@ function IconVerified({ color = '#E85D26', size = 18 }) {
   );
 }
 
-function IconShipping({ color = '#E85D26', size = 18 }) {
+function IconShipping({ color, size = 18 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d="M1 3H15V16H1V3Z" stroke={color} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
@@ -45,7 +45,7 @@ function IconShipping({ color = '#E85D26', size = 18 }) {
   );
 }
 
-function IconStar({ color = '#E85D26', size = 18 }) {
+function IconStar({ color, size = 18 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
@@ -69,9 +69,9 @@ function HeartIcon({ filled }) {
 
 export default function DetailsScreen({ route }) {
   const { product } = route.params;
-  const dispatch = useDispatch();
-  const navigation = useNavigation();
-  const theme = useTheme();
+  const dispatch    = useDispatch();
+  const navigation  = useNavigation();
+  const theme       = useTheme();
 
   const [toast, setToast] = useState({ visible: false, message: '', emoji: '✅' });
 
@@ -117,7 +117,7 @@ export default function DetailsScreen({ route }) {
   ];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar barStyle="light-content" />
 
       <Toast
@@ -127,7 +127,8 @@ export default function DetailsScreen({ route }) {
         onHide={() => setToast(t => ({ ...t, visible: false }))}
       />
 
-      <View style={styles.glow1} />
+      {/* Glows decorativos */}
+      <View style={[styles.glow1, { backgroundColor: theme.primary }]} />
       <View style={[styles.glow2, { backgroundColor: theme.primary }]} />
 
       <Pressable onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={12}>
@@ -194,16 +195,14 @@ export default function DetailsScreen({ route }) {
         opacity: footerAnim,
         transform: [{ translateY: footerAnim.interpolate({ inputRange: [0, 1], outputRange: [60, 0] }) }],
       }]}>
-        <View style={styles.footerGlow} />
+        <View style={[styles.footerGlow, { backgroundColor: theme.primary }]} />
 
-        {/* Precio + botón favorito */}
         <View style={styles.footerLeft}>
           <Text style={styles.footerLabel}>Precio</Text>
           <Text style={styles.footerPrice}>${product.price?.toFixed(2)}</Text>
         </View>
 
         <View style={styles.footerActions}>
-          {/* Botón favorito */}
           <Pressable
             onPress={handleFav}
             style={[styles.favDetailBtn, {
@@ -216,7 +215,6 @@ export default function DetailsScreen({ route }) {
             </Animated.View>
           </Pressable>
 
-          {/* Botón carrito */}
           <Pressable
             style={({ pressed }) => [
               styles.addBtn,
@@ -225,8 +223,10 @@ export default function DetailsScreen({ route }) {
             ]}
             onPress={handleAddToCart}
           >
-            <IconCart color="#fff" size={18} />
-            <Text style={styles.addBtnText}>Agregar al carrito</Text>
+            <IconCart color={theme.onPrimary} size={18} />
+            <Text style={[styles.addBtnText, { color: theme.onPrimary }]}>
+              Agregar al carrito
+            </Text>
           </Pressable>
         </View>
       </Animated.View>
@@ -235,17 +235,16 @@ export default function DetailsScreen({ route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0A0F' },
+  container: { flex: 1 },
 
   glow1: {
     position: 'absolute', width: 300, height: 300, borderRadius: 150,
-    backgroundColor: '#E85D26', opacity: 0.07, top: -80, right: -80,
+    opacity: 0.07, top: -80, right: -80,
   },
   glow2: {
     position: 'absolute', width: 200, height: 200, borderRadius: 100,
     opacity: 0.05, bottom: 200, left: -60,
   },
-
   backBtn: {
     position: 'absolute', top: 56, left: 20, zIndex: 10,
     width: 38, height: 38, borderRadius: 12,
@@ -253,10 +252,8 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
   },
-
   imageWrap: { width: '100%', height: 300 },
   image:     { width: '100%', height: 300, resizeMode: 'cover' },
-
   sheet: {
     backgroundColor: '#0A0A0F',
     borderTopLeftRadius: 32, borderTopRightRadius: 32,
@@ -267,9 +264,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignSelf: 'center', marginBottom: 22,
   },
-
   name: { fontSize: 28, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 10 },
-
   priceRow: {
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between', marginBottom: 22,
@@ -281,7 +276,6 @@ const styles = StyleSheet.create({
     borderRadius: 12, paddingHorizontal: 12, paddingVertical: 5,
   },
   ratingText: { fontSize: 13, fontWeight: '700', color: '#F59E0B' },
-
   infoRow:  { flexDirection: 'row', gap: 10, marginBottom: 24 },
   infoPill: {
     flex: 1, alignItems: 'center', gap: 8, paddingVertical: 14,
@@ -290,14 +284,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   infoLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.5)' },
-
   descTitle: { fontSize: 17, fontWeight: '800', color: '#FFFFFF', marginBottom: 10 },
   desc:      { fontSize: 15, color: 'rgba(255,255,255,0.5)', lineHeight: 24, marginBottom: 20 },
-
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tag:  { paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderRadius: 20 },
   tagText: { fontSize: 12, fontWeight: '700' },
-
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -309,25 +300,22 @@ const styles = StyleSheet.create({
   },
   footerGlow: {
     position: 'absolute', width: 180, height: 80, borderRadius: 90,
-    backgroundColor: '#E85D26', opacity: 0.07, top: -20, left: 20,
+    opacity: 0.07, top: -20, left: 20,
   },
   footerLeft: {},
   footerLabel: { fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 2 },
   footerPrice: { fontSize: 24, fontWeight: '900', color: '#FFFFFF' },
-
   footerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-
   favDetailBtn: {
     width: 52, height: 52, borderRadius: 16,
     borderWidth: 1.5,
     alignItems: 'center', justifyContent: 'center',
   },
-
   addBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingVertical: 16, paddingHorizontal: 22, borderRadius: 18,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.5, shadowRadius: 14, elevation: 8,
   },
-  addBtnText: { color: '#fff', fontSize: 15, fontWeight: '800' },
+  addBtnText: { fontSize: 15, fontWeight: '800' },
 });

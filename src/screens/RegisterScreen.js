@@ -10,15 +10,15 @@ import {
   signInWithCredential,
   GoogleAuthProvider,
 } from 'firebase/auth';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import { makeRedirectUri } from 'expo-auth-session';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';
 import { saveSession } from '../service/sessionStorage';
 
-WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
+});
 
 function Blob({ style, delay = 0 }) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -54,27 +54,30 @@ export default function RegisterScreen() {
     ]).start();
   }, []);
 
-    const [request, response, promptAsync] = Google.useAuthRequest({
-      androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
-      webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
-      redirectUri: 'https://auth.expo.io/@emanueldiazochoa/mistore',
-    });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.authentication;
-      const credential = GoogleAuthProvider.credential(id_token);
+  const handleGoogleRegister = async () => {
+    try {
       setGoogleLoading(true);
-      signInWithCredential(auth, credential)
-        .then(async ({ user }) => {
-          await saveSession(user.email, user.uid);
-          dispatch(setUser({ email: user.email, uid: user.uid }));
-          navigation.replace('Main');
-        })
-        .catch((error) => Alert.alert('Error con Google', error.message))
-        .finally(() => setGoogleLoading(false));
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo.data?.idToken ?? userInfo.idToken;
+      if (!idToken) throw new Error('No se recibió token de Google');
+      const credential = GoogleAuthProvider.credential(idToken);
+      const { user } = await signInWithCredential(auth, credential);
+      await saveSession(user.email, user.uid);
+      dispatch(setUser({ email: user.email, uid: user.uid }));
+      navigation.replace('Main');
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) return;
+      if (error.code === statusCodes.IN_PROGRESS) return;
+      if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Error', 'Google Play Services no disponible');
+        return;
+      }
+      Alert.alert('Error Google', error.message);
+    } finally {
+      setGoogleLoading(false);
     }
-  }, [response]);
+  };
 
   const validate = () => {
     if (!email || !password || !confirmPassword) {
@@ -138,8 +141,8 @@ export default function RegisterScreen() {
 
           <Pressable
             style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed]}
-            onPress={() => promptAsync()}
-            disabled={!request || googleLoading}
+            onPress={handleGoogleRegister}
+            disabled={googleLoading}
           >
             <View style={styles.googleIconWrap}>
               <Text style={styles.googleG}>G</Text>

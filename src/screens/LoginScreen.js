@@ -4,21 +4,17 @@ import {
   Alert, ActivityIndicator, KeyboardAvoidingView,
   Platform, StatusBar, Animated,
 } from 'react-native';
-import {
-  signInWithEmailAndPassword,
-  signInWithCredential,
-  GoogleAuthProvider,
-} from 'firebase/auth';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import { makeRedirectUri } from 'expo-auth-session';
+import { signInWithEmailAndPassword, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';
 import { saveSession } from '../service/sessionStorage';
 
-WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
+});
 
 function Blob({ style, delay = 0 }) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -34,7 +30,6 @@ function Blob({ style, delay = 0 }) {
   const scale = anim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
   return <Animated.View style={[style, { transform: [{ translateY }, { scale }] }]} />;
 }
-
 
 export default function LoginScreen() {
   const dispatch = useDispatch();
@@ -55,53 +50,49 @@ export default function LoginScreen() {
     ]).start();
   }, []);
 
-    const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
-    webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
-    redirectUri: 'https://auth.expo.io/@emanueldiazochoa/mistore',
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.authentication;
-      if (!id_token) {
-        Alert.alert('Error', 'No se recibió token de Google');
+  const handleGoogleLogin = async () => {
+    try {
+      setGoogleLoading(true);
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo.data?.idToken ?? userInfo.idToken;
+      if (!idToken) throw new Error('No se recibió token de Google');
+      const credential = GoogleAuthProvider.credential(idToken);
+      const { user } = await signInWithCredential(auth, credential);
+      await saveSession(user.email, user.uid);
+      dispatch(setUser({ email: user.email, uid: user.uid }));
+      navigation.replace('Main');
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) return;
+      if (error.code === statusCodes.IN_PROGRESS) return;
+      if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Error', 'Google Play Services no disponible');
         return;
       }
-      const credential = GoogleAuthProvider.credential(id_token);
-      setGoogleLoading(true);
-      signInWithCredential(auth, credential)
-      .then(async ({ user }) => {
-        await saveSession(user.email, user.uid);      
-        dispatch(setUser({ email: user.email, uid: user.uid }));
-        navigation.replace('Main');
-      })
-      .catch((e) => Alert.alert('Error Firebase', e.message))
-      .finally(() => setGoogleLoading(false));
-      } else if (response?.type === 'error') {
-        Alert.alert('Error Google', response.error?.message || 'Error desconocido');
-      }
-  }, [response]);
+      Alert.alert('Error Google', error.message);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleEmailLogin = async () => {
-  if (!email || !password) { Alert.alert('Error', 'Completá todos los campos'); return; }
-  setLoading(true);
-  try {
-    const { user } = await signInWithEmailAndPassword(auth, email, password);
-    await saveSession(user.email, user.uid);           
-    dispatch(setUser({ uid: user.uid, email: user.email }));
-    navigation.replace('Main');
-  } catch {
-    Alert.alert('Error', 'Email o contraseña incorrectos');
-  } finally {
-    setLoading(false);
-  }
-};
+    if (!email || !password) { Alert.alert('Error', 'Completá todos los campos'); return; }
+    setLoading(true);
+    try {
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
+      await saveSession(user.email, user.uid);
+      dispatch(setUser({ uid: user.uid, email: user.email }));
+      navigation.replace('Main');
+    } catch {
+      Alert.alert('Error', 'Email o contraseña incorrectos');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.root}>
       <StatusBar barStyle="light-content" />
-
       <View style={styles.bg} />
       <Blob style={styles.blob1} delay={0} />
       <Blob style={styles.blob2} delay={600} />
@@ -129,8 +120,8 @@ export default function LoginScreen() {
 
               <Pressable
                 style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed]}
-                onPress={() => promptAsync()}
-                disabled={!request || googleLoading}
+                onPress={handleGoogleLogin}
+                disabled={googleLoading}
               >
                 <View style={styles.googleIconWrap}>
                   <Text style={styles.googleG}>G</Text>

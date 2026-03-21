@@ -1,4 +1,3 @@
-// Determina si un color necesita texto oscuro encima
 const isLightColor = (hex) => {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -47,11 +46,11 @@ export const shadows = {
 };
 
 export const getTheme = (isDark, accentColor = '#E85D26') => ({
-  colors: palette.dark,  // siempre dark, ignoramos isDark por ahora
+  colors: palette.dark,  
   shadows,
   isDark: true,
   primary: accentColor,
   onPrimary: isLightColor(accentColor) ? '#0A0A0F' : '#FFFFFF',
-  // Tinte MUY sutil sobre negro — mezcla del acento con el fondo oscuro
-  bgTint: `${accentColor}08`,  // 3% opacidad — apenas perceptible sobre negro
+  
+  bgTint: `${accentColor}08`, 
 });

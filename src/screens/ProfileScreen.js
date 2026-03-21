@@ -94,7 +94,6 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar barStyle="light-content" />
-      {/* Un solo tinte — sin duplicado */}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <View style={[styles.bgGlow1, { backgroundColor: accentColor }]} />
       <View style={styles.bgGlow2} />

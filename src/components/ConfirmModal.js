@@ -36,7 +36,6 @@ export default function ConfirmModal({
     }
   }, [visible]);
 
-  // Color del texto sobre el botón confirmar según luminosidad
   const confirmBg       = confirmDestructive ? '#FF4D4D' : accentColor;
   const confirmTextColor = isLightColor(confirmBg) ? '#0A0A0F' : '#FFFFFF';
 

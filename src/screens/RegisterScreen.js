@@ -56,6 +56,7 @@ export default function RegisterScreen() {
   const [request, response, promptAsync] = Google.useAuthRequest({
   androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
   webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
+  redirectUri: makeRedirectUri({ scheme: 'mistore' }),
 });
 
   useEffect(() => {

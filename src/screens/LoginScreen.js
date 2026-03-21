@@ -36,8 +36,6 @@ function Blob({ style, delay = 0 }) {
 }
 
 
-const REDIRECT_URI = 'https://auth.expo.io/@emanueldiazochoa/mistore';
-
 export default function LoginScreen() {
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -60,6 +58,7 @@ export default function LoginScreen() {
   const [request, response, promptAsync] = Google.useAuthRequest({
   androidClientId: '392409110606-2cbo8nheu4tn9p5gvj7l5h27iq67on93.apps.googleusercontent.com',
   webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
+  redirectUri: makeRedirectUri({ scheme: 'mistore' }),
 });
 
   useEffect(() => {

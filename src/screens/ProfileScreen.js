@@ -61,12 +61,16 @@ export default function ProfileScreen() {
     ]).start();
 
     (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
-        setLocation(loc.coords);
-      }
-    })();
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status === 'granted') {
+      const loc = await Location.getCurrentPositionAsync({});
+      setLocation(loc.coords);
+    }
+  } catch (e) {
+    // Location no disponible en este dispositivo/emulador
+  }
+})();
   }, []);
 
   const handleLogout = () => {

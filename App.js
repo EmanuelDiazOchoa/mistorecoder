@@ -41,7 +41,7 @@ function Root() {
         dispatch(setUser({ email: session.email, uid: session.uid }));
         setInitialRoute('Main');
       } else {
-        setInitialRoute('Register');
+        setInitialRoute('Login');
       }
     })();
   }, []);

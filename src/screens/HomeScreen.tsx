@@ -3,7 +3,7 @@ import {
   View, Text, FlatList, StyleSheet,
   StatusBar, RefreshControl, Pressable, Animated,
 } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchProducts } from '../redux/productsSlice';
 import ProductCard from '../components/ProductCard';
 import SearchBar from '../components/SearchBar';
@@ -30,13 +30,13 @@ function AnimatedCard({ children, index }) {
 }
 
 const FILTERS = [
-  { label: 'Todo',       key: 'Todo'       },
-  { label: 'Pan',        key: 'pan'        },
-  { label: 'Tortas',     key: 'torta'      },
+  { label: 'Todo', key: 'Todo' },
+  { label: 'Pan', key: 'pan' },
+  { label: 'Tortas', key: 'torta' },
   { label: 'Galletitas', key: 'galletitas' },
-  { label: 'Donas',      key: 'donas'      },
-  { label: 'Postres',    key: 'budin'      },
-  { label: 'Chocolates', key: 'chocolate'  },
+  { label: 'Donas', key: 'donas' },
+  { label: 'Postres', key: 'budin' },
+  { label: 'Chocolates', key: 'chocolate' },
 ];
 
 function SkeletonList() {
@@ -50,9 +50,9 @@ function SkeletonList() {
 }
 
 export default function HomeScreen({ navigation }) {
-  const dispatch = useDispatch();
-  const { products, loading } = useSelector((state) => state.products);
-  const user = useSelector((state) => state.auth.user);
+  const dispatch = useAppDispatch();
+  const { products, loading } = useAppSelector((state) => state.products);
+  const user = useAppSelector((state) => state.auth.user);
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todo');
   const [refreshing, setRefreshing] = useState(false);
@@ -67,18 +67,18 @@ export default function HomeScreen({ navigation }) {
       Animated.spring(headerAnim, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }),
       Animated.spring(searchAnim, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [dispatch]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await dispatch(fetchProducts());
     setRefreshing(false);
-  }, []);
+  }, [dispatch]);
 
   const filtered = products.filter((p) => {
     const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = activeFilter === 'Todo' || p.category === activeFilter;
-    return matchSearch && matchFilter;
+    const matchFilter = activeFilter === 'Todo' ; p.category === activeFilter;
+    return matchSearch ; matchFilter;
   });
 
   const greeting = () => {
@@ -88,16 +88,15 @@ export default function HomeScreen({ navigation }) {
     return '🌙 Buenas noches';
   };
 
-  const username = user?.email?.split('@')[0] || 'visitante';
-
-  const activeLabel = FILTERS.find(f => f.key === activeFilter)?.label || activeFilter;
+  const username = user?.email?.split('@')[0] ; 'visitante';
+  const activeLabel = FILTERS.find((f) => f.key === activeFilter)?.label || activeFilter;
 
   const ListHeader = (
     <View>
       <Animated.View style={[styles.header, {
         opacity: headerAnim,
         transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
-      }]}>
+      }]}> 
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.greeting}>{greeting()}</Text>
@@ -106,20 +105,22 @@ export default function HomeScreen({ navigation }) {
           <View style={[styles.logoBadge, {
             backgroundColor: `${theme.primary}20`,
             borderColor: `${theme.primary}40`,
-          }]}>
+          }]}> 
             <Text style={styles.logoBadgeText}>🍞</Text>
           </View>
         </View>
 
         <View style={[styles.promoBanner, {
-              backgroundColor: `${theme.primary}18`,
-              borderColor: `${theme.primary}30`,
-            }]}>
-              <View style={[styles.promoGlow, { backgroundColor: theme.primary }]} />
-              <View style={styles.promoContent}>
+          backgroundColor: `${theme.primary}18`,
+          borderColor: `${theme.primary}30`,
+        }]}> 
+          <View style={[styles.promoGlow, { backgroundColor: theme.primary }]} />
+          <View style={styles.promoContent}>
             <Text style={[styles.promoTag, { color: theme.primary }]}>✨ OFERTA DEL DÍA</Text>
-            <Text style={styles.promoTitle}>Panadería{'\n'}Artesanal</Text>
-            <Text style={styles.promoSub}>Recetas de siempre,{'\n'}sabor único</Text>
+            <Text style={styles.promoTitle}>Panadería{'
+'}Artesanal</Text>
+            <Text style={styles.promoSub}>Recetas de siempre,{'
+'}sabor único</Text>
           </View>
           <Text style={styles.promoEmoji}>🥐</Text>
         </View>
@@ -128,7 +129,7 @@ export default function HomeScreen({ navigation }) {
       <Animated.View style={[styles.searchWrap, {
         opacity: searchAnim,
         transform: [{ translateY: searchAnim.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
-      }]}>
+      }]}> 
         <SearchBar value={search} onChangeText={setSearch} />
       </Animated.View>
 
@@ -146,13 +147,13 @@ export default function HomeScreen({ navigation }) {
               activeFilter === f.key && {
                 backgroundColor: theme.primary,
                 borderColor: theme.primary,
-              }
+              },
             ]}
             onPress={() => setActiveFilter(f.key)}
           >
             <Text style={[
               styles.chipText,
-              activeFilter === f.key && { color: theme.onPrimary }
+              activeFilter === f.key && { color: theme.onPrimary },
             ]}>
               {f.label}
             </Text>
@@ -172,9 +173,8 @@ export default function HomeScreen({ navigation }) {
   );
 
   return (
-  
-  <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-  <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}> 
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <StatusBar barStyle="light-content" />
       <FlatList
         data={filtered}
@@ -192,16 +192,16 @@ export default function HomeScreen({ navigation }) {
         }
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={
-            loading
-              ? <SkeletonList />
-              : (
-                <EmptyState
-                  icon="search-off"
-                  title="Sin resultados"
-                  subtitle="Intentá con otro nombre o categoría"
-                />
-              )
-          }
+          loading
+            ? <SkeletonList />
+            : (
+              <EmptyState
+                icon="search-off"
+                title="Sin resultados"
+                subtitle="Intentá con otro nombre o categoría"
+              />
+            )
+        }
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
       />
@@ -211,7 +211,6 @@ export default function HomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-
   header: { paddingTop: 56, paddingHorizontal: 20, paddingBottom: 0 },
   headerTop: {
     flexDirection: 'row', justifyContent: 'space-between',
@@ -226,7 +225,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   logoBadgeText: { fontSize: 24 },
-
   promoBanner: {
     backgroundColor: 'rgba(232,93,38,0.12)',
     borderRadius: 24, borderWidth: 1,
@@ -243,10 +241,7 @@ const styles = StyleSheet.create({
   promoTitle: { fontSize: 26, fontWeight: '900', color: '#FFFFFF', lineHeight: 30, marginBottom: 6 },
   promoSub: { fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 18 },
   promoEmoji: { fontSize: 64 },
-
   searchWrap: { paddingHorizontal: 20, marginBottom: 8 },
-
-  
   filtersWrap: {
     paddingHorizontal: 20,
     paddingBottom: 20,
@@ -259,11 +254,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
   },
-  
-  chipActive: {},  
   chipText: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.5)' },
-  chipTextActive: { color: '#FFFFFF' },
-
   sectionTitle: {
     fontSize: 18, fontWeight: '800', color: '#FFFFFF',
     paddingHorizontal: 20, marginBottom: 12,

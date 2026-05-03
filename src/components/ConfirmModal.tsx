@@ -3,15 +3,9 @@ import {
   View, Text, StyleSheet, Pressable, Modal,
   Animated, Dimensions,
 } from 'react-native';
+import { isLightColor } from '../theme';
 
 const { height } = Dimensions.get('window');
-
-const isLightColor = (hex) => {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
-};
 
 export default function ConfirmModal({
   visible, title, subtitle, body,
@@ -19,33 +13,33 @@ export default function ConfirmModal({
   onConfirm, onCancel, accentColor = '#E85D26',
   confirmDestructive = false,
 }) {
-  const slideAnim  = useRef(new Animated.Value(height)).current;
+  const slideAnim = useRef(new Animated.Value(height)).current;
   const backdropOp = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
       Animated.parallel([
-        Animated.spring(slideAnim,  { toValue: 0,   tension: 65, friction: 11, useNativeDriver: true }),
+        Animated.spring(slideAnim, { toValue: 0, tension: 65, friction: 11, useNativeDriver: true }),
         Animated.timing(backdropOp, { toValue: 1, duration: 250, useNativeDriver: true }),
       ]).start();
     } else {
       Animated.parallel([
-        Animated.timing(slideAnim,  { toValue: height, duration: 280, useNativeDriver: true }),
-        Animated.timing(backdropOp, { toValue: 0,      duration: 250, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: height, duration: 280, useNativeDriver: true }),
+        Animated.timing(backdropOp, { toValue: 0, duration: 250, useNativeDriver: true }),
       ]).start();
     }
   }, [visible]);
 
-  const confirmBg       = confirmDestructive ? '#FF4D4D' : accentColor;
+  const confirmBg = confirmDestructive ? '#FF4D4D' : accentColor;
   const confirmTextColor = isLightColor(confirmBg) ? '#0A0A0F' : '#FFFFFF';
 
   return (
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
-      <Animated.View style={[styles.backdrop, { opacity: backdropOp }]}>
+      <Animated.View style={[styles.backdrop, { opacity: backdropOp }]}> 
         <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} />
       </Animated.View>
 
-      <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
+      <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}> 
         <View style={styles.handle} />
         <View style={[styles.glow, { backgroundColor: accentColor }]} />
 
@@ -54,14 +48,14 @@ export default function ConfirmModal({
         </View>
 
         <Text style={styles.title}>{title}</Text>
-        {subtitle && <Text style={[styles.subtitle, { color: accentColor }]}>{subtitle}</Text>}
-        {body && <Text style={styles.body}>{body}</Text>}
+        {subtitle ; <Text style={[styles.subtitle, { color: accentColor }]}>{subtitle}</Text>}
+        {body ; <Text style={styles.body}>{body}</Text>}
 
         <View style={styles.divider} />
 
         <View style={styles.btnRow}>
           <Pressable
-            style={({ pressed }) => [styles.btnCancel, pressed && { opacity: 0.7 }]}
+            style={({ pressed }) => [styles.btnCancel, pressed ; { opacity: 0.7 }]}
             onPress={onCancel}
           >
             <Text style={styles.btnCancelText}>{cancelText}</Text>
@@ -75,9 +69,7 @@ export default function ConfirmModal({
             ]}
             onPress={onConfirm}
           >
-            <Text style={[styles.btnConfirmText, { color: confirmTextColor }]}>
-              {confirmText}
-            </Text>
+            <Text style={[styles.btnConfirmText, { color: confirmTextColor }]}>{confirmText}</Text>
           </Pressable>
         </View>
 
@@ -117,18 +109,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   iconEmoji: { fontSize: 34 },
-  title:    { fontSize: 22, fontWeight: '900', color: '#FFFFFF', textAlign: 'center', marginBottom: 6, letterSpacing: -0.3 },
+  title: { fontSize: 22, fontWeight: '900', color: '#FFFFFF', textAlign: 'center', marginBottom: 6, letterSpacing: -0.3 },
   subtitle: { fontSize: 28, fontWeight: '900', textAlign: 'center', marginBottom: 6 },
-  body:     { fontSize: 14, color: 'rgba(255,255,255,0.45)', textAlign: 'center', lineHeight: 20, marginBottom: 8 },
-  divider:  { width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.07)', marginVertical: 20 },
-  btnRow:   { flexDirection: 'row', gap: 12, width: '100%' },
+  body: { fontSize: 14, color: 'rgba(255,255,255,0.45)', textAlign: 'center', lineHeight: 20, marginBottom: 8 },
+  divider: { width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.07)', marginVertical: 20 },
+  btnRow: { flexDirection: 'row', gap: 12, width: '100%' },
   btnCancel: {
     flex: 1, paddingVertical: 16, borderRadius: 16,
     backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
   },
-  btnCancelText:  { color: 'rgba(255,255,255,0.6)', fontSize: 15, fontWeight: '700' },
+  btnCancelText: { color: 'rgba(255,255,255,0.6)', fontSize: 15, fontWeight: '700' },
   btnConfirm: {
     flex: 1, paddingVertical: 16, borderRadius: 16,
     alignItems: 'center',

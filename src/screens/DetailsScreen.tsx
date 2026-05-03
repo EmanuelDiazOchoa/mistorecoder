@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, Image, Pressable,
   StatusBar, ScrollView, Animated,
 } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Svg, { Path, Circle } from 'react-native-svg';
@@ -69,25 +69,25 @@ function HeartIcon({ filled }) {
 
 export default function DetailsScreen({ route }) {
   const { product } = route.params;
-  const dispatch    = useDispatch();
-  const navigation  = useNavigation();
-  const theme       = useTheme();
+  const dispatch = useAppDispatch();
+  const navigation = useNavigation();
+  const theme = useTheme();
 
   const [toast, setToast] = useState({ visible: false, message: '', emoji: '✅' });
 
-  const isFavorite = useSelector((state) =>
-    state.favorites.items.some(i => i.id === product.id)
+  const isFavorite = useAppSelector((state) =>
+    state.favorites.items.some((i) => i.id === product.id)
   );
 
-  const sheetAnim  = useRef(new Animated.Value(0)).current;
-  const imageAnim  = useRef(new Animated.Value(0)).current;
+  const sheetAnim = useRef(new Animated.Value(0)).current;
+  const imageAnim = useRef(new Animated.Value(0)).current;
   const footerAnim = useRef(new Animated.Value(0)).current;
   const heartScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.stagger(100, [
-      Animated.spring(imageAnim,  { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }),
-      Animated.spring(sheetAnim,  { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
+      Animated.spring(imageAnim, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }),
+      Animated.spring(sheetAnim, { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
       Animated.spring(footerAnim, { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
     ]).start();
   }, []);
@@ -101,19 +101,19 @@ export default function DetailsScreen({ route }) {
     dispatch(toggleFavorite(product));
     Animated.sequence([
       Animated.spring(heartScale, { toValue: 1.4, useNativeDriver: true, speed: 80 }),
-      Animated.spring(heartScale, { toValue: 1,   useNativeDriver: true, speed: 80 }),
+      Animated.spring(heartScale, { toValue: 1, useNativeDriver: true, speed: 80 }),
     ]).start();
     setToast({
       visible: true,
-      message: !isFavorite ? 'Agregado a favoritos' : 'Quitado de favoritos',
-      emoji:   !isFavorite ? '❤️' : '🩶',
+      message: isFavorite ? 'Quitado de favoritos' : 'Agregado a favoritos',
+      emoji: isFavorite ? '🩶' : '❤️',
     });
   };
 
   const INFO = [
     { Icon: IconVerified, label: 'Artesanal' },
     { Icon: IconShipping, label: 'Envío gratis' },
-    { Icon: IconStar,     label: 'Premium' },
+    { Icon: IconStar, label: 'Premium' },
   ];
 
   return (
@@ -124,10 +124,9 @@ export default function DetailsScreen({ route }) {
         visible={toast.visible}
         message={toast.message}
         emoji={toast.emoji}
-        onHide={() => setToast(t => ({ ...t, visible: false }))}
+        onHide={() => setToast((t) => ({ ...t, visible: false }))}
       />
 
-      {/* Glows decorativos */}
       <View style={[styles.glow1, { backgroundColor: theme.primary }]} />
       <View style={[styles.glow2, { backgroundColor: theme.primary }]} />
 
@@ -139,14 +138,14 @@ export default function DetailsScreen({ route }) {
         <Animated.View style={[styles.imageWrap, {
           opacity: imageAnim,
           transform: [{ scale: imageAnim.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) }],
-        }]}>
+        }]}> 
           <Image source={getProductImage(product.category, product.image)} style={styles.image} />
         </Animated.View>
 
         <Animated.View style={[styles.sheet, {
           opacity: sheetAnim,
           transform: [{ translateY: sheetAnim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
-        }]}>
+        }]}> 
           <View style={styles.handle} />
 
           <Text style={styles.name}>
@@ -181,7 +180,7 @@ export default function DetailsScreen({ route }) {
               <View key={tag} style={[styles.tag, {
                 backgroundColor: `${theme.primary}18`,
                 borderColor: `${theme.primary}40`,
-              }]}>
+              }]}> 
                 <Text style={[styles.tagText, { color: theme.primary }]}>{tag}</Text>
               </View>
             ))}
@@ -194,7 +193,7 @@ export default function DetailsScreen({ route }) {
       <Animated.View style={[styles.footer, {
         opacity: footerAnim,
         transform: [{ translateY: footerAnim.interpolate({ inputRange: [0, 1], outputRange: [60, 0] }) }],
-      }]}>
+      }]}> 
         <View style={[styles.footerGlow, { backgroundColor: theme.primary }]} />
 
         <View style={styles.footerLeft}>
@@ -208,8 +207,7 @@ export default function DetailsScreen({ route }) {
             style={[styles.favDetailBtn, {
               backgroundColor: isFavorite ? 'rgba(255,77,109,0.15)' : 'rgba(255,255,255,0.06)',
               borderColor: isFavorite ? '#FF4D6D' : 'rgba(255,255,255,0.15)',
-            }]}
-          >
+            }]}>
             <Animated.View style={{ transform: [{ scale: heartScale }] }}>
               <HeartIcon filled={isFavorite} />
             </Animated.View>
@@ -224,9 +222,7 @@ export default function DetailsScreen({ route }) {
             onPress={handleAddToCart}
           >
             <IconCart color={theme.onPrimary} size={18} />
-            <Text style={[styles.addBtnText, { color: theme.onPrimary }]}>
-              Agregar al carrito
-            </Text>
+            <Text style={[styles.addBtnText, { color: theme.onPrimary }]}>Agregar al carrito</Text>
           </Pressable>
         </View>
       </Animated.View>
@@ -236,7 +232,6 @@ export default function DetailsScreen({ route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-
   glow1: {
     position: 'absolute', width: 300, height: 300, borderRadius: 150,
     opacity: 0.07, top: -80, right: -80,
@@ -253,7 +248,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   imageWrap: { width: '100%', height: 300 },
-  image:     { width: '100%', height: 300, resizeMode: 'cover' },
+  image: { width: '100%', height: 300, resizeMode: 'cover' },
   sheet: {
     backgroundColor: '#0A0A0F',
     borderTopLeftRadius: 32, borderTopRightRadius: 32,
@@ -276,7 +271,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, paddingHorizontal: 12, paddingVertical: 5,
   },
   ratingText: { fontSize: 13, fontWeight: '700', color: '#F59E0B' },
-  infoRow:  { flexDirection: 'row', gap: 10, marginBottom: 24 },
+  infoRow: { flexDirection: 'row', gap: 10, marginBottom: 24 },
   infoPill: {
     flex: 1, alignItems: 'center', gap: 8, paddingVertical: 14,
     backgroundColor: 'rgba(255,255,255,0.04)',
@@ -285,9 +280,9 @@ const styles = StyleSheet.create({
   },
   infoLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.5)' },
   descTitle: { fontSize: 17, fontWeight: '800', color: '#FFFFFF', marginBottom: 10 },
-  desc:      { fontSize: 15, color: 'rgba(255,255,255,0.5)', lineHeight: 24, marginBottom: 20 },
+  desc: { fontSize: 15, color: 'rgba(255,255,255,0.5)', lineHeight: 24, marginBottom: 20 },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tag:  { paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderRadius: 20 },
+  tag: { paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderRadius: 20 },
   tagText: { fontSize: 12, fontWeight: '700' },
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,

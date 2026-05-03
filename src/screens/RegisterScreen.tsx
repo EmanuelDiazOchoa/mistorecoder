@@ -4,7 +4,7 @@ import {
   Alert, ActivityIndicator, KeyboardAvoidingView,
   Platform, StatusBar, Animated,
 } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '../hooks/useRedux';
 import {
   createUserWithEmailAndPassword,
   signInWithCredential,
@@ -15,10 +15,6 @@ import { useNavigation } from '@react-navigation/native';
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';
 import { saveSession } from '../service/sessionStorage';
-
-GoogleSignin.configure({
-  webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
-});
 
 function Blob({ style, delay = 0 }) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -36,7 +32,7 @@ function Blob({ style, delay = 0 }) {
 }
 
 export default function RegisterScreen() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -128,23 +124,23 @@ export default function RegisterScreen() {
         style={{ opacity: fadeAnim }}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View style={[styles.hero, { transform: [{ translateY: slideAnim }] }]}>
-          <View style={styles.logoRing}>
+        <Animated.View style={[styles.hero, { transform: [{ translateY: slideAnim }] }]}> 
+          <View style={styles.logoRing}> 
             <Text style={styles.logoEmoji}>🍞</Text>
           </View>
           <Text style={styles.heroTitle}>Roma Store</Text>
           <Text style={styles.heroSub}>Creá tu cuenta gratis</Text>
         </Animated.View>
 
-        <Animated.View style={[styles.card, { transform: [{ translateY: slideAnim }] }]}>
+        <Animated.View style={[styles.card, { transform: [{ translateY: slideAnim }] }]}> 
           <Text style={styles.cardTitle}>Crear cuenta</Text>
 
           <Pressable
-            style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.googleBtn, pressed ; styles.pressed]}
             onPress={handleGoogleRegister}
             disabled={googleLoading}
           >
-            <View style={styles.googleIconWrap}>
+            <View style={styles.googleIconWrap}> 
               <Text style={styles.googleG}>G</Text>
             </View>
             {googleLoading
@@ -186,7 +182,7 @@ export default function RegisterScreen() {
           />
 
           <Pressable
-            style={({ pressed }) => [styles.submitBtn, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.submitBtn, pressed ; styles.pressed]}
             onPress={handleRegister}
             disabled={loading}
           >
@@ -235,7 +231,7 @@ const styles = StyleSheet.create({
   },
   logoEmoji: { fontSize: 44 },
   heroTitle: { fontSize: 34, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 5 },
-  heroSub: { fontSize: 14, color: 'rgba(255,255,255,0.5)' },
+  heroSub: { font size: 14, color: 'rgba(255,255,255,0.5)' },
   card: {
     backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 28, padding: 28,
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
@@ -257,20 +253,16 @@ const styles = StyleSheet.create({
   divLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
   divText: { color: 'rgba(255,255,255,0.3)', fontSize: 12 },
   input: {
-    height: 52, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14,
-    paddingHorizontal: 18, marginBottom: 12, fontSize: 15, color: '#FFFFFF',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)',
+    height: 52, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, paddingHorizontal: 16, color: '#FFFFFF', marginBottom: 16,
   },
   submitBtn: {
-    backgroundColor: '#7C3AED', paddingVertical: 16, borderRadius: 16,
-    alignItems: 'center', marginTop: 4, marginBottom: 22,
-    shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45, shadowRadius: 12, elevation: 6,
+    paddingVertical: 16, borderRadius: 16, alignItems: 'center', marginBottom: 18,
+    backgroundColor: '#7C3AED',
   },
-  submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
-  pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
-  loginRow: { alignItems: 'center' },
-  loginText: { color: 'rgba(255,255,255,0.4)', fontSize: 14 },
-  loginLink: { color: '#E85D26', fontWeight: '800' },
-  footer: { textAlign: 'center', color: 'rgba(255,255,255,0.18)', fontSize: 11, marginTop: 24 },
+  submitBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+  loginRow: { marginTop: 12, alignItems: 'center' },
+  loginText: { color: 'rgba(255,255,255,0.6)', fontSize: 13 },
+  loginLink: { color: '#FFFFFF', fontWeight: '800' },
+  footer: { marginTop: 28, textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 12 },
+  pressed: { opacity: 0.85 },
 });

@@ -1,4 +1,4 @@
-const isLightColor = (hex) => {
+export const isLightColor = (hex: string) => {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
@@ -32,7 +32,7 @@ export const shadows = {
   md: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.10,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -45,12 +45,11 @@ export const shadows = {
   },
 };
 
-export const getTheme = (isDark, accentColor = '#E85D26') => ({
-  colors: palette.dark,  
+export const getTheme = (isDark: boolean, accentColor = '#E85D26') => ({
+  colors: palette.dark,
   shadows,
-  isDark: true,
+  isDark,
   primary: accentColor,
   onPrimary: isLightColor(accentColor) ? '#0A0A0F' : '#FFFFFF',
-  
-  bgTint: `${accentColor}08`, 
+  bgTint: `${accentColor}08`,
 });

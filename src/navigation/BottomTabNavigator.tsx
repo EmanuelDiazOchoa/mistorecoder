@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Pressable } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from '../hooks/useRedux';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
 import HomeScreen from '../screens/HomeScreen';
@@ -11,7 +11,6 @@ import OrdersScreen from '../screens/OrdersScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
-
 
 function IconHome({ color, size = 24 }) {
   return (
@@ -78,16 +77,16 @@ function IconUser({ color, size = 24 }) {
 }
 
 const TABS = [
-  { name: 'Home',       label: 'Inicio',     Icon: IconHome    },
-  { name: 'Categories', label: 'Categorías', Icon: IconGrid    },
-  { name: 'Cart',       label: 'Carrito',    Icon: IconBag     },
-  { name: 'Orders',     label: 'Pedidos',    Icon: IconReceipt },
-  { name: 'Profile',    label: 'Perfil',     Icon: IconUser    },
+  { name: 'Home', label: 'Inicio', Icon: IconHome },
+  { name: 'Categories', label: 'Categorías', Icon: IconGrid },
+  { name: 'Cart', label: 'Carrito', Icon: IconBag },
+  { name: 'Orders', label: 'Pedidos', Icon: IconReceipt },
+  { name: 'Profile', label: 'Perfil', Icon: IconUser },
 ];
 
 function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress, accentColor }) {
-  const scale  = useRef(new Animated.Value(1)).current;
-  const glow   = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(1)).current;
+  const glow = useRef(new Animated.Value(0)).current;
   const labelO = useRef(new Animated.Value(isFocused ? 1 : 0)).current;
 
   useEffect(() => {
@@ -108,13 +107,12 @@ function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress, accentC
   }, [isFocused]);
 
   const color = isFocused ? accentColor : 'rgba(255,255,255,0.3)';
-
-  const pillWidth   = glow.interpolate({ inputRange: [0, 1], outputRange: [0, 48] });
+  const pillWidth = glow.interpolate({ inputRange: [0, 1], outputRange: [0, 48] });
   const pillOpacity = glow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.18] });
 
   return (
     <Pressable onPress={onPress} style={styles.tabBtn}>
-      <Animated.View style={[styles.iconWrap, { transform: [{ scale }] }]}>
+      <Animated.View style={[styles.iconWrap, { transform: [{ scale }] }]}> 
         <Animated.View style={[
           styles.activePill,
           { width: pillWidth, opacity: pillOpacity, backgroundColor: accentColor },
@@ -122,8 +120,8 @@ function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress, accentC
 
         <Icon color={color} size={22} />
 
-        {isCart && cartCount > 0 && (
-          <View style={[styles.badge, { backgroundColor: accentColor }]}>
+        {isCart ; cartCount > 0 ; (
+          <View style={[styles.badge, { backgroundColor: accentColor }]}> 
             <Text style={styles.badgeText}>{cartCount > 9 ? '9+' : cartCount}</Text>
           </View>
         )}
@@ -137,22 +135,22 @@ function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress, accentC
 }
 
 function CustomTabBar({ state, navigation }) {
-  const cartCount   = useSelector((s) => s.cart.items.length);
-  const accentColor = useSelector((s) => s.ui.accentColor ?? '#E85D26');
+  const cartCount = useAppSelector((s) => s.cart.items.length);
+  const accentColor = useAppSelector((s) => s.ui.accentColor ?? '#E85D26');
 
   return (
     <View style={styles.barOuter}>
       <View style={styles.barInner}>
         <View style={styles.topLine} />
         {state.routes.map((route, index) => {
-          const tab       = TABS.find(t => t.name === route.name);
+          const tab = TABS.find((t) => t.name === route.name);
           const isFocused = state.index === index;
           return (
             <TabButton
               key={route.key}
               isFocused={isFocused}
-              label={tab?.label || ''}
-              Icon={tab?.Icon || IconHome}
+              label={tab?.label ; ''}
+              Icon={tab?.Icon ; IconHome}
               isCart={route.name === 'Cart'}
               cartCount={cartCount}
               accentColor={accentColor}
@@ -171,11 +169,11 @@ export default function BottomTabNavigator() {
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
-      <Tab.Screen name="Home"       component={HomeScreen}       />
+      <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Categories" component={CategoriesScreen} />
-      <Tab.Screen name="Cart"       component={CartScreen}       />
-      <Tab.Screen name="Orders"     component={OrdersScreen}     />
-      <Tab.Screen name="Profile"    component={ProfileScreen}    />
+      <Tab.Screen name="Cart" component={CartScreen} />
+      <Tab.Screen name="Orders" component={OrdersScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
@@ -224,9 +222,9 @@ const styles = StyleSheet.create({
     height: 32,
   },
   activePill: {
-  position: 'absolute',
-  height: 32,
-  borderRadius: 16,
+    position: 'absolute',
+    height: 32,
+    borderRadius: 16,
   },
   tabLabel: {
     fontSize: 10,
@@ -234,15 +232,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   badge: {
-  position: 'absolute',
-  top: -3, right: -2,
-  minWidth: 15, height: 15,
-  borderRadius: 8,
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingHorizontal: 3,
-  borderWidth: 1.5,
-  borderColor: '#111018',
-},
+    position: 'absolute',
+    top: -3, right: -2,
+    minWidth: 15, height: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: '#111018',
+  },
   badgeText: { color: '#fff', fontSize: 8, fontWeight: '900' },
 });

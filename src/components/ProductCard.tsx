@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, Image, Pressable, Animated } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import Svg, { Path } from 'react-native-svg';
 import { getProductImage } from '../utils/productImages';
 import { useTheme } from '../hooks/useTheme';
@@ -22,14 +22,14 @@ function HeartIcon({ filled, color }) {
 
 export default function ProductCard({ product, onPress }) {
   const theme = useTheme();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const scale = useRef(new Animated.Value(1)).current;
   const heartScale = useRef(new Animated.Value(1)).current;
   const [toast, setToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
 
-  const isFavorite = useSelector((state) =>
-    state.favorites.items.some(i => i.id === product.id)
+  const isFavorite = useAppSelector((state) =>
+    state.favorites.items.some((i) => i.id === product.id)
   );
 
   const onPressIn = () =>
@@ -53,7 +53,7 @@ export default function ProductCard({ product, onPress }) {
       <Toast
         visible={toast}
         message={toastMsg}
-        emoji={!isFavorite ? '🩶' : '❤️'}
+        emoji={isFavorite ? '🩶' : '❤️'}
         onHide={() => setToast(false)}
       />
       <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
@@ -91,18 +91,24 @@ export default function ProductCard({ product, onPress }) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 16, padding: 14, marginBottom: 12,
-    flexDirection: 'row', alignItems: 'center',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  image:       { width: 72, height: 72, borderRadius: 12, marginRight: 14 },
-  info:        { flex: 1 },
-  name:        { fontSize: 16, fontWeight: '700', marginBottom: 2 },
-  category:    { fontSize: 12, marginBottom: 6 },
-  price:       { fontSize: 17, fontWeight: '800' },
-  favBtn:      { marginRight: 10, padding: 4 },
+  image: { width: 72, height: 72, borderRadius: 12, marginRight: 14 },
+  info: { flex: 1 },
+  name: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
+  category: { fontSize: 12, marginBottom: 6 },
+  price: { fontSize: 17, fontWeight: '800' },
+  favBtn: { marginRight: 10, padding: 4 },
   addBtn: {
-    width: 34, height: 34, borderRadius: 17,
-    alignItems: 'center', justifyContent: 'center',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addBtnText: { color: '#fff', fontSize: 22, fontWeight: '300', lineHeight: 24 },
 });

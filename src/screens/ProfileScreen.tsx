@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, Pressable,
   Alert, StatusBar, ScrollView, Animated,
 } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { signOut } from 'firebase/auth';
 import * as Location from 'expo-location';
 import { useNavigation } from '@react-navigation/native';
@@ -13,13 +13,7 @@ import { clearUser } from '../features/auth/authSlice';
 import { setAccentColor, ACCENT_COLORS } from '../redux/uiSlice';
 import { clearSession } from '../service/sessionStorage';
 import { useTheme } from '../hooks/useTheme';
-
-const isLightColor = (hex) => {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
-};
+import { isLightColor } from '../theme';
 
 function StatCard({ label, value, icon, color, delay }) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -30,8 +24,8 @@ function StatCard({ label, value, icon, color, delay }) {
     <Animated.View style={[styles.stat, {
       opacity: anim,
       transform: [{ scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }],
-    }]}>
-      <View style={[styles.statIcon, { backgroundColor: `${color}18` }]}>
+    }]}> 
+      <View style={[styles.statIcon, { backgroundColor: `${color}18` }]}> 
         <MaterialIcons name={icon} size={20} color={color} />
       </View>
       <Text style={styles.statValue}>{value}</Text>
@@ -41,36 +35,36 @@ function StatCard({ label, value, icon, color, delay }) {
 }
 
 export default function ProfileScreen() {
-  const user        = useSelector((state) => state.auth.user);
-  const orders      = useSelector((state) => state.orders.orders);
-  const cartCount   = useSelector((state) => state.cart.items.length);
-  const favorites   = useSelector((state) => state.favorites.items);
-  const accentColor = useSelector((state) => state.ui.accentColor ?? '#E85D26');
-  const theme       = useTheme();
-  const dispatch    = useDispatch();
-  const navigation  = useNavigation();
+  const user = useAppSelector((state) => state.auth.user);
+  const orders = useAppSelector((state) => state.orders.orders);
+  const cartCount = useAppSelector((state) => state.cart.items.length);
+  const favorites = useAppSelector((state) => state.favorites.items);
+  const accentColor = useAppSelector((state) => state.ui.accentColor ?? '#E85D26');
+  const theme = useTheme();
+  const dispatch = useAppDispatch();
+  const navigation = useNavigation();
   const [location, setLocation] = useState(null);
 
-  const headerAnim  = useRef(new Animated.Value(0)).current;
+  const headerAnim = useRef(new Animated.Value(0)).current;
   const contentAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.stagger(150, [
-      Animated.spring(headerAnim,  { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
+      Animated.spring(headerAnim, { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
       Animated.spring(contentAnim, { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
     ]).start();
 
     (async () => {
-  try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status === 'granted') {
-      const loc = await Location.getCurrentPositionAsync({});
-      setLocation(loc.coords);
-    }
-  } catch (e) {
-    // Location no disponible en este dispositivo/emulador
-  }
-})();
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({});
+          setLocation(loc.coords);
+        }
+      } catch (e) {
+        // Location no disponible en este dispositivo/emulador
+      }
+    })();
   }, []);
 
   const handleLogout = () => {
@@ -88,38 +82,35 @@ export default function ProfileScreen() {
     ]);
   };
 
-  const username = user?.email?.split('@')[0] || 'Usuario';
-  const initial  = username.charAt(0).toUpperCase();
+  const username = user?.email?.split('@')[0] ; 'Usuario';
+  const initial = username.charAt(0).toUpperCase();
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}> 
       <StatusBar barStyle="light-content" />
       <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <View style={[styles.bgGlow1, { backgroundColor: accentColor }]} />
       <View style={styles.bgGlow2} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
-
         <Animated.View style={[styles.profileHeader, {
           opacity: headerAnim,
           transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
-        }]}>
-          <View style={[styles.avatarRing, { borderColor: accentColor, shadowColor: accentColor }]}>
-            <View style={[styles.avatarInner, { backgroundColor: `${accentColor}30` }]}>
+        }]}> 
+          <View style={[styles.avatarRing, { borderColor: accentColor, shadowColor: accentColor }]}> 
+            <View style={[styles.avatarInner, { backgroundColor: `${accentColor}30` }]}> 
               <Text style={[styles.avatarInitial, { color: accentColor }]}>{initial}</Text>
             </View>
           </View>
           <Text style={styles.profileName}>{username}</Text>
           <Text style={styles.profileEmail}>{user?.email}</Text>
-          {location && (
-            <View style={styles.locationRow}>
+          {location ; (
+            <View style={styles.locationRow}> 
               <MaterialIcons name="location-on" size={13} color={accentColor} />
-              <Text style={styles.locationText}>
-                {location.latitude.toFixed(3)}, {location.longitude.toFixed(3)}
-              </Text>
+              <Text style={styles.locationText}>{location.latitude.toFixed(3)};, {location.longitude.toFixed(3)}</Text>
             </View>
           )}
-          <View style={styles.memberBadge}>
+          <View style={styles.memberBadge}> 
             <Text style={styles.memberBadgeText}>⭐ Miembro Premium</Text>
           </View>
         </Animated.View>
@@ -127,27 +118,23 @@ export default function ProfileScreen() {
         <Animated.View style={[styles.statsRow, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
-        }]}>
-          <StatCard label="Pedidos"    value={orders.length}    icon="receipt-long"  color={accentColor} delay={200} />
-          <StatCard label="En carrito" value={cartCount}        icon="shopping-cart" color="#7C3AED"     delay={300} />
-          <StatCard label="Favoritos"  value={favorites.length} icon="favorite"      color="#FF4D6D"     delay={400} />
+        }]}> 
+          <StatCard label="Pedidos" value={orders.length} icon="receipt-long" color={accentColor} delay={200} />
+          <StatCard label="En carrito" value={cartCount} icon="shopping-cart" color="#7C3AED" delay={300} />
+          <StatCard label="Favoritos" value={favorites.length} icon="favorite" color="#FF4D6D" delay={400} />
         </Animated.View>
 
         {favorites.length > 0 && (
           <Animated.View style={[styles.section, {
             opacity: contentAnim,
             transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
-          }]}>
+          }]}> 
             <Text style={styles.sectionLabel}>MIS FAVORITOS</Text>
             {favorites.map((item) => (
               <View key={item.id} style={styles.favRow}>
                 <MaterialIcons name="favorite" size={16} color="#FF4D6D" />
-                <Text style={styles.favName}>
-                  {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
-                </Text>
-                <Text style={[styles.favPrice, { color: accentColor }]}>
-                  ${item.price?.toFixed(2)}
-                </Text>
+                <Text style={styles.favName}>{item.name.charAt(0).toUpperCase() + item.name.slice(1)}</Text>
+                <Text style={[styles.favPrice, { color: accentColor }]}>${item.price?.toFixed(2)}</Text>
               </View>
             ))}
           </Animated.View>
@@ -156,7 +143,7 @@ export default function ProfileScreen() {
         <Animated.View style={[styles.section, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
-        }]}>
+        }]}> 
           <Text style={styles.sectionLabel}>COLOR DE ACENTO</Text>
           <View style={styles.colorRow}>
             {ACCENT_COLORS.map((color) => {
@@ -168,20 +155,18 @@ export default function ProfileScreen() {
                   style={[
                     styles.colorDot,
                     { backgroundColor: color },
-                    isSelected && [styles.colorDotActive, { borderColor: '#FFFFFF', shadowColor: color }],
+                    isSelected ; [styles.colorDotActive, { borderColor: '#FFFFFF', shadowColor: color }],
                   ]}
                 >
-                  {isSelected && (
-                    <Text style={[styles.colorCheck, { color: isLightColor(color) ? '#0A0A0F' : '#FFFFFF' }]}>
-                      ✓
-                    </Text>
+                  {isSelected ; (
+                    <Text style={[styles.colorCheck, { color: isLightColor(color) ? '#0A0A0F' : '#FFFFFF' }]}>✓</Text>
                   )}
                 </Pressable>
               );
             })}
           </View>
-          <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
-            <View style={[styles.settingIcon, { backgroundColor: `${accentColor}20` }]}>
+          <View style={[styles.settingRow, { borderBottomWidth: 0 }]}> 
+            <View style={[styles.settingIcon, { backgroundColor: `${accentColor}20` }]}> 
               <MaterialIcons name="info-outline" size={18} color={accentColor} />
             </View>
             <Text style={styles.settingText}>Versión</Text>
@@ -191,7 +176,7 @@ export default function ProfileScreen() {
 
         <Animated.View style={{ opacity: contentAnim }}>
           <Pressable
-            style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
+            style={({ pressed }) => [styles.logoutBtn, pressed ; { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
             onPress={handleLogout}
           >
             <MaterialIcons name="logout" size={18} color="#FF4D4D" />
@@ -229,11 +214,11 @@ const styles = StyleSheet.create({
     flex: 1, borderRadius: 44,
     alignItems: 'center', justifyContent: 'center',
   },
-  avatarInitial:   { fontSize: 38, fontWeight: '900' },
-  profileName:     { fontSize: 24, fontWeight: '900', color: '#FFFFFF', marginBottom: 4, letterSpacing: -0.3 },
-  profileEmail:    { fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 10 },
-  locationRow:     { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 14 },
-  locationText:    { fontSize: 12, color: 'rgba(255,255,255,0.35)' },
+  avatarInitial: { fontSize: 38, fontWeight: '900' },
+  profileName: { fontSize: 24, fontWeight: '900', color: '#FFFFFF', marginBottom: 4, letterSpacing: -0.3 },
+  profileEmail: { fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 10 },
+  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 14 },
+  locationText: { fontSize: 12, color: 'rgba(255,255,255,0.35)' },
   memberBadge: {
     backgroundColor: 'rgba(245,158,11,0.15)',
     borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)',
@@ -246,7 +231,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', gap: 6,
   },
-  statIcon:  { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  statIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   statValue: { fontSize: 22, fontWeight: '900', color: '#FFFFFF' },
   statLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.35)' },
   section: {
@@ -264,7 +249,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
   },
-  favName:  { flex: 1, fontSize: 14, fontWeight: '600', color: '#FFFFFF' },
+  favName: { flex: 1, fontSize: 14, fontWeight: '600', color: '#FFFFFF' },
   favPrice: { fontSize: 14, fontWeight: '800' },
   colorRow: {
     flexDirection: 'row', gap: 12,
@@ -284,8 +269,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
   },
-  settingIcon:  { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  settingText:  { flex: 1, fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
+  settingIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  settingText: { flex: 1, fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
   settingValue: { fontSize: 13, color: 'rgba(255,255,255,0.35)' },
   logoutBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,

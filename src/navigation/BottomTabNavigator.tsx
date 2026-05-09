@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Pressable } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useAppSelector } from '../hook/useRedux';
+import { useAppSelector } from '../hooks/useRedux';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
 import HomeScreen from '../screens/HomeScreen';

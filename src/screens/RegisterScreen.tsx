@@ -4,7 +4,7 @@ import {
   Alert, ActivityIndicator, KeyboardAvoidingView,
   Platform, StatusBar, Animated,
 } from 'react-native';
-import { useAppDispatch } from '../hook/useRedux';
+import { useAppDispatch } from '../hooks/useRedux';
 import {
   createUserWithEmailAndPassword,
   signInWithCredential,

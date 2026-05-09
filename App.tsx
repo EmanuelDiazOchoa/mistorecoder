@@ -14,7 +14,7 @@ import { loadOrders } from './src/redux/ordersSlice';
 import { setUser } from './src/features/auth/authSlice';
 import { getSession } from './src/service/sessionStorage';
 import { loadFavorites } from './src/redux/favoritesSlice';
-import { useAppDispatch } from './src/hook/useRedux';
+import { useAppDispatch } from './src/hooks/useRedux';
 
 WebBrowser.maybeCompleteAuthSession();
 

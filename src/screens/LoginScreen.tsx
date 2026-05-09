@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { signInWithEmailAndPassword, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-import { useAppDispatch } from '../hook/useRedux';
+import { useAppDispatch } from '../hooks/useRedux';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';

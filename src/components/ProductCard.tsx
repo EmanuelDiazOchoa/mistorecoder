@@ -1,66 +1,119 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, StyleSheet, Image, Pressable, Animated } from 'react-native';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import Svg, { Path } from 'react-native-svg';
+import { getProductImage } from '../utils/productImages';
+import { useTheme } from '../hooks/useTheme';
+import { toggleFavorite } from '../redux/favoritesSlice';
+import Toast from './Toast';
+import { Product } from '../types';
 
-const getProductImage = (name) => {
-  switch (name.toLowerCase()) {
-    case 'pan':
-      return require('../../assets/Pan.webp');
-    case 'torta':
-      return require('../../assets/Torta.webp');
-    case 'budin':
-      return require('../../assets/Budin.webp');
-      case 'galletitas':
-      return require('../../assets/Galletitas.jpg');
-      case 'donas':
-      return require('../../assets/dona.png');
-      case 'chocolate':
-      return require('../../assets/chocolate.webp');
-    
-  }
-};
-
-export default function ProductCard({ product, onPress }) {
+function HeartIcon({ filled, color }: { filled: boolean; color: string }) {
   return (
-    <Pressable onPress={onPress} style={styles.card}>
-      <Image source={getProductImage(product.name)} style={styles.image} />
-      <View style={styles.info}>
-        <Text style={styles.name}>{product.name}</Text>
-        <Text style={styles.price}>${product.price}</Text>
-      </View>
-    </Pressable>
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill={filled ? color : 'none'}>
+      <Path
+        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+        stroke={filled ? color : 'rgba(255,255,255,0.3)'}
+        strokeWidth={1.8}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+interface ProductCardProps {
+  product: Product;
+  onPress: () => void;
+}
+
+export default function ProductCard({ product, onPress }: ProductCardProps) {
+  const theme = useTheme();
+  const dispatch = useAppDispatch();
+  const scale = useRef(new Animated.Value(1)).current;
+  const heartScale = useRef(new Animated.Value(1)).current;
+  const [toast, setToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+
+  const isFavorite = useAppSelector((state) =>
+    state.favorites.items.some((i) => i.id === product.id)
+  );
+
+  const onPressIn = () =>
+    Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, speed: 50 }).start();
+  const onPressOut = () =>
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 50 }).start();
+
+  const handleFav = () => {
+    dispatch(toggleFavorite(product));
+    Animated.sequence([
+      Animated.spring(heartScale, { toValue: 1.4, useNativeDriver: true, speed: 80 }),
+      Animated.spring(heartScale, { toValue: 1, useNativeDriver: true, speed: 80 }),
+    ]).start();
+    const msg = !isFavorite
+      ? `${product.name} agregado a favoritos`
+      : `${product.name} quitado de favoritos`;
+    setToastMsg(msg);
+    setToast(true);
+  };
+
+  return (
+    <>
+      <Toast
+        visible={toast}
+        message={toastMsg}
+        emoji={isFavorite ? '🩶' : '❤️'}
+        onHide={() => setToast(false)}
+      />
+      <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
+        <Animated.View style={[
+          styles.card,
+          { backgroundColor: theme.colors.card, transform: [{ scale }] },
+          theme.shadows.sm,
+        ]}>
+          <Image source={getProductImage(product.category, product.image)} style={styles.image} />
+          <View style={styles.info}>
+            <Text style={[styles.name, { color: theme.colors.text }]} numberOfLines={1}>
+              {product.name.charAt(0).toUpperCase() + product.name.slice(1)}
+            </Text>
+            <Text style={[styles.category, { color: theme.colors.textMuted }]}>Artesanal</Text>
+            <Text style={[styles.price, { color: theme.primary }]}>${product.price?.toFixed(2)}</Text>
+          </View>
+
+          <Pressable onPress={handleFav} hitSlop={8} style={styles.favBtn}>
+            <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+              <HeartIcon filled={isFavorite} color="#FF4D6D" />
+            </Animated.View>
+          </Pressable>
+
+          <Pressable
+            onPress={onPress}
+            style={[styles.addBtn, { backgroundColor: theme.primary }]}
+          >
+            <Text style={styles.addBtnText}>+</Text>
+          </Pressable>
+        </Animated.View>
+      </Pressable>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
   },
-  image: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    marginRight: 15,
+  image: { width: 72, height: 72, borderRadius: 12, marginRight: 14 },
+  info: { flex: 1 },
+  name: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
+  category: { fontSize: 12, marginBottom: 6 },
+  price: { fontSize: 17, fontWeight: '800' },
+  favBtn: { marginRight: 10, padding: 4 },
+  addBtn: {
+    width: 34, height: 34, borderRadius: 17,
+    alignItems: 'center', justifyContent: 'center',
   },
-  info: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  price: {
-    fontSize: 16,
-    color: '#888',
-    marginTop: 4,
-  },
+  addBtnText: { color: '#fff', fontSize: 22, fontWeight: '300', lineHeight: 24 },
 });

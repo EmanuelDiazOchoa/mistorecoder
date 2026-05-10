@@ -7,14 +7,17 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
     "ios": {
       "supportsTablet": true
     },
+
     "android": {
       "package": "com.emanueldiazochoa.mistore",
       "adaptiveIcon": {
@@ -27,24 +30,24 @@
         "NOTIFICATIONS"
       ]
     },
+
     "web": {
       "favicon": "./assets/favicon.png"
     },
+
     "extra": {
       "eas": {
         "projectId": "8187eb6f-8363-4452-bbfa-77bbd0c85bf9"
       }
     },
+
     "plugins": [
       "expo-sqlite",
       [
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#ffffff",
-          "sounds": [
-            "default"
-          ]
+          "color": "#ffffff"
         }
       ],
       "expo-secure-store",

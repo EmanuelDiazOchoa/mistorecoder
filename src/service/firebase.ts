@@ -1,24 +1,44 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-// @ts-ignore - getReactNativePersistence exists in firebase v11 runtime but types are incomplete
-import { getReactNativePersistence, initializeAuth } from 'firebase/auth';
+
+import {
+  initializeAuth,
+  getAuth,
+} from 'firebase/auth';
+
+import * as authModule from 'firebase/auth';
+
 import { getDatabase } from 'firebase/database';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const getReactNativePersistence =
+  (authModule as any).getReactNativePersistence;
+
 const firebaseConfig = {
-  apiKey:            process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain:        process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  databaseURL:       process.env.EXPO_PUBLIC_FIREBASE_DATABASE_URL,
-  projectId:         process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket:     process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId:             process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyCt-HbGqJeWDNJjJ0XKc5qppkrcbBHpHUY",
+  authDomain: "ecomersmovil.firebaseapp.com",
+  databaseURL: "https://ecomersmovil-default-rtdb.firebaseio.com",
+  projectId: "ecomersmovil",
+  storageBucket: "ecomersmovil.firebasestorage.app",
+  messagingSenderId: "392409110606",
+  appId: "1:392409110606:web:692dd3035725af10ba0b1f"
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+console.log('Firebase config:', firebaseConfig);
 
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+const app = getApps().length
+  ? getApp()
+  : initializeApp(firebaseConfig);
+
+let auth;
+
+try {
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch (error) {
+  auth = getAuth(app);
+}
 
 const db = getDatabase(app);
 

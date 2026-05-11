@@ -14,7 +14,6 @@ import { getProductImage } from '../utils/productImages';
 import { useTheme } from '../hooks/useTheme';
 import ConfirmModal from '../components/ConfirmModal';
 import * as Notifications from 'expo-notifications';
-import { CartItem } from '../types';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -25,16 +24,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-interface CartItemRowProps {
-  item: CartItem;
-  index: number;
-  accentColor: string;
-  onIncrement: () => void;
-  onDecrement: () => void;
-  onRemove: () => void;
-}
-
-function CartItemRow({ item, index, accentColor, onIncrement, onDecrement, onRemove }: CartItemRowProps) {
+function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove }) {
   const anim = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -91,7 +81,7 @@ export default function CartScreen() {
   const total = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const totalUnits = cartItems.reduce((sum, i) => sum + i.quantity, 0);
 
-  const [modal, setModal] = useState<{ type: 'purchase' | 'clear' | null }>({ type: null });
+  const [modal, setModal] = useState({ type: null });
   const footerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -167,7 +157,7 @@ export default function CartScreen() {
             data={cartItems}
             keyExtractor={(item) => item.id?.toString()}
             renderItem={({ item, index }) => (
-              <CartItemRow
+              <CartItem
                 item={item}
                 index={index}
                 accentColor={accentColor}

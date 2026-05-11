@@ -1,28 +1,48 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Pressable, StatusBar, Animated } from 'react-native';
+import {
+  View, Text, FlatList, StyleSheet,
+  Pressable, StatusBar, Animated,
+} from 'react-native';
 import { useAppSelector } from '../hooks/useRedux';
-import { MaterialIcons } from '@expo/vector-icons';
+import Svg, { Path, Polyline } from 'react-native-svg';
 import ProductCard from '../components/ProductCard';
 import { CATEGORIES } from '../utils/productImages';
 import { useTheme } from '../hooks/useTheme';
-import { Product } from '../types';
 
-const CATEGORY_COLORS: Record<string, string> = {
-  pan:        '#E85D26',
-  torta:      '#EC4899',
+const CATEGORY_COLORS = {
+  pan: '#E85D26',
+  torta: '#EC4899',
   galletitas: '#F59E0B',
-  donas:      '#8B5CF6',
-  budin:      '#10B981',
-  chocolate:  '#92400E',
+  donas: '#8B5CF6',
+  budin: '#10B981',
+  chocolate: '#92400E',
 };
 
-function AnimatedProductItem({ item, index, onPress }: { item: Product; index: number; onPress: () => void }) {
+// Modern chevron-left icon
+function IconChevronLeft({ color = '#FFFFFF', size = 20 }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M15 18L9 12L15 6"
+        stroke={color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function AnimatedProductItem({ item, index, onPress }) {
   const anim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.spring(anim, {
-      toValue: 1, tension: 55, friction: 10,
-      delay: index * 70, useNativeDriver: true,
+      toValue: 1,
+      tension: 55,
+      friction: 10,
+      delay: index * 70,
+      useNativeDriver: true,
     }).start();
   }, []);
 
@@ -36,7 +56,7 @@ function AnimatedProductItem({ item, index, onPress }: { item: Product; index: n
   );
 }
 
-export default function CategoryProductsScreen({ route, navigation }: { route: any; navigation: any }) {
+export default function CategoryProductsScreen({ route, navigation }) {
   const { category } = route.params;
   const products = useAppSelector((state) => state.products.products);
 
@@ -45,7 +65,7 @@ export default function CategoryProductsScreen({ route, navigation }: { route: a
   );
 
   const catInfo = CATEGORIES.find((c) => c.key === category);
-  const color = CATEGORY_COLORS[category] ?? '#E85D26';
+  const color = CATEGORY_COLORS[category] || '#E85D26';
   const theme = useTheme();
 
   const headerAnim = useRef(new Animated.Value(0)).current;
@@ -66,12 +86,12 @@ export default function CategoryProductsScreen({ route, navigation }: { route: a
         transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-16, 0] }) }],
       }]}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={12}>
-          <MaterialIcons name="arrow-back-ios" size={20} color="#FFFFFF" />
+          <IconChevronLeft color="#FFFFFF" size={20} />
         </Pressable>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerEmoji}>{catInfo?.emoji ?? '🛒'}</Text>
+          <Text style={styles.headerEmoji}>{catInfo?.emoji || '🛒'}</Text>
           <View>
-            <Text style={styles.headerTitle}>{catInfo?.label ?? category}</Text>
+            <Text style={styles.headerTitle}>{catInfo?.label || category}</Text>
             <Text style={[styles.headerSub, { color }]}>
               {filtered.length} producto{filtered.length !== 1 ? 's' : ''}
             </Text>
@@ -114,9 +134,9 @@ const styles = StyleSheet.create({
     paddingTop: 56, paddingBottom: 20, paddingHorizontal: 20,
   },
   backBtn: {
-    width: 38, height: 38, borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    width: 40, height: 40, borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center', justifyContent: 'center',
   },
   headerCenter: { flexDirection: 'row', alignItems: 'center', gap: 12 },

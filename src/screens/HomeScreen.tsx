@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, FlatList, StyleSheet,
-  StatusBar, RefreshControl, Pressable, Animated,
+  StatusBar, RefreshControl, Pressable, Animated, ScrollView,
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchProducts } from '../redux/productsSlice';
@@ -11,7 +11,7 @@ import EmptyState from '../components/EmptyState';
 import SkeletonCard from '../components/SkeletonCard';
 import { useTheme } from '../hooks/useTheme';
 
-function AnimatedCard({ children, index }: { children: React.ReactNode; index: number }) {
+function AnimatedCard({ children, index }) {
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.spring(anim, {
@@ -49,7 +49,7 @@ function SkeletonList() {
   );
 }
 
-export default function HomeScreen({ navigation }: { navigation: any }) {
+export default function HomeScreen({ navigation }) {
   const dispatch = useAppDispatch();
   const { products, loading } = useAppSelector((state) => state.products);
   const user = useAppSelector((state) => state.auth.user);
@@ -88,8 +88,8 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
     return '🌙 Buenas noches';
   };
 
-  const username = user?.email?.split('@')[0] ?? 'visitante';
-  const activeLabel = FILTERS.find((f) => f.key === activeFilter)?.label ?? activeFilter;
+  const username = user?.email?.split('@')[0] || 'visitante';
+  const activeLabel = FILTERS.find((f) => f.key === activeFilter)?.label || activeFilter;
 
   const ListHeader = (
     <View>
@@ -131,33 +131,34 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
         <SearchBar value={search} onChangeText={setSearch} />
       </Animated.View>
 
-      <Animated.ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtersWrap}
-        style={{ opacity: searchAnim }}
-      >
-        {FILTERS.map((f) => (
-          <Pressable
-            key={f.key}
-            style={[
-              styles.chip,
-              activeFilter === f.key && {
-                backgroundColor: theme.primary,
-                borderColor: theme.primary,
-              },
-            ]}
-            onPress={() => setActiveFilter(f.key)}
-          >
-            <Text style={[
-              styles.chipText,
-              activeFilter === f.key && { color: theme.onPrimary },
-            ]}>
-              {f.label}
-            </Text>
-          </Pressable>
-        ))}
-      </Animated.ScrollView>
+      <Animated.View style={{ opacity: searchAnim }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersWrap}
+        >
+          {FILTERS.map((f) => (
+            <Pressable
+              key={f.key}
+              style={[
+                styles.chip,
+                activeFilter === f.key && {
+                  backgroundColor: theme.primary,
+                  borderColor: theme.primary,
+                },
+              ]}
+              onPress={() => setActiveFilter(f.key)}
+            >
+              <Text style={[
+                styles.chipText,
+                activeFilter === f.key && { color: theme.onPrimary },
+              ]}>
+                {f.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </Animated.View>
 
       <Text style={styles.sectionTitle}>
         {search
@@ -237,7 +238,12 @@ const styles = StyleSheet.create({
   promoSub: { fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 18 },
   promoEmoji: { fontSize: 64 },
   searchWrap: { paddingHorizontal: 20, marginBottom: 8 },
-  filtersWrap: { paddingHorizontal: 20, paddingBottom: 20, gap: 8, flexDirection: 'row' },
+  filtersWrap: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    gap: 8,
+    flexDirection: 'row',
+  },
   chip: {
     paddingHorizontal: 16, paddingVertical: 8,
     borderRadius: 20,

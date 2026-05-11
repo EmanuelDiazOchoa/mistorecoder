@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { useNavigation } from '@react-navigation/native';
-import { MaterialIcons } from '@expo/vector-icons';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { addToCart } from '../redux/cartSlice';
 import { toggleFavorite } from '../redux/favoritesSlice';
@@ -13,7 +12,22 @@ import { getProductImage } from '../utils/productImages';
 import { useTheme } from '../hooks/useTheme';
 import Toast from '../components/Toast';
 
-function IconCart({ color = '#fff', size = 20 }: { color?: string; size?: number }) {
+// Modern chevron-left back arrow
+function IconChevronLeft({ color = '#FFFFFF', size = 20 }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M15 18L9 12L15 6"
+        stroke={color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function IconCart({ color = '#fff', size = 20 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d="M6 2L3 6V20C3 21.1 3.9 22 5 22H19C20.1 22 21 21.1 21 20V6L18 2H6Z"
@@ -25,7 +39,7 @@ function IconCart({ color = '#fff', size = 20 }: { color?: string; size?: number
   );
 }
 
-function IconVerified({ color, size = 18 }: { color: string; size?: number }) {
+function IconVerified({ color, size = 18 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
@@ -34,7 +48,7 @@ function IconVerified({ color, size = 18 }: { color: string; size?: number }) {
   );
 }
 
-function IconShipping({ color, size = 18 }: { color: string; size?: number }) {
+function IconShipping({ color, size = 18 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d="M1 3H15V16H1V3Z" stroke={color} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
@@ -45,7 +59,7 @@ function IconShipping({ color, size = 18 }: { color: string; size?: number }) {
   );
 }
 
-function IconStar({ color, size = 18 }: { color: string; size?: number }) {
+function IconStar({ color, size = 18 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
@@ -54,22 +68,23 @@ function IconStar({ color, size = 18 }: { color: string; size?: number }) {
   );
 }
 
-function HeartIcon({ filled }: { filled: boolean }) {
+function HeartIcon({ filled }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill={filled ? '#FF4D6D' : 'none'}>
       <Path
         d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
         stroke={filled ? '#FF4D6D' : 'rgba(255,255,255,0.4)'}
-        strokeWidth={1.8} strokeLinejoin="round"
+        strokeWidth={1.8}
+        strokeLinejoin="round"
       />
     </Svg>
   );
 }
 
-export default function DetailsScreen({ route }: { route: any }) {
+export default function DetailsScreen({ route }) {
   const { product } = route.params;
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
   const theme = useTheme();
 
   const [toast, setToast] = useState({ visible: false, message: '', emoji: '✅' });
@@ -78,15 +93,15 @@ export default function DetailsScreen({ route }: { route: any }) {
     state.favorites.items.some((i) => i.id === product.id)
   );
 
-  const sheetAnim  = useRef(new Animated.Value(0)).current;
-  const imageAnim  = useRef(new Animated.Value(0)).current;
+  const sheetAnim = useRef(new Animated.Value(0)).current;
+  const imageAnim = useRef(new Animated.Value(0)).current;
   const footerAnim = useRef(new Animated.Value(0)).current;
   const heartScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.stagger(100, [
-      Animated.spring(imageAnim,  { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }),
-      Animated.spring(sheetAnim,  { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
+      Animated.spring(imageAnim, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }),
+      Animated.spring(sheetAnim, { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
       Animated.spring(footerAnim, { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
     ]).start();
   }, []);
@@ -100,7 +115,7 @@ export default function DetailsScreen({ route }: { route: any }) {
     dispatch(toggleFavorite(product));
     Animated.sequence([
       Animated.spring(heartScale, { toValue: 1.4, useNativeDriver: true, speed: 80 }),
-      Animated.spring(heartScale, { toValue: 1,   useNativeDriver: true, speed: 80 }),
+      Animated.spring(heartScale, { toValue: 1, useNativeDriver: true, speed: 80 }),
     ]).start();
     setToast({
       visible: true,
@@ -110,9 +125,9 @@ export default function DetailsScreen({ route }: { route: any }) {
   };
 
   const INFO = [
-    { Icon: IconVerified, label: 'Artesanal'   },
+    { Icon: IconVerified, label: 'Artesanal' },
     { Icon: IconShipping, label: 'Envío gratis' },
-    { Icon: IconStar,     label: 'Premium'      },
+    { Icon: IconStar, label: 'Premium' },
   ];
 
   return (
@@ -129,8 +144,9 @@ export default function DetailsScreen({ route }: { route: any }) {
       <View style={[styles.glow1, { backgroundColor: theme.primary }]} />
       <View style={[styles.glow2, { backgroundColor: theme.primary }]} />
 
+      {/* Modern back button with chevron SVG */}
       <Pressable onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={12}>
-        <MaterialIcons name="arrow-back-ios" size={20} color="#FFFFFF" />
+        <IconChevronLeft color="#FFFFFF" size={20} />
       </Pressable>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -146,9 +162,11 @@ export default function DetailsScreen({ route }: { route: any }) {
           transform: [{ translateY: sheetAnim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
         }]}>
           <View style={styles.handle} />
+
           <Text style={styles.name}>
             {product.name.charAt(0).toUpperCase() + product.name.slice(1)}
           </Text>
+
           <View style={styles.priceRow}>
             <Text style={[styles.price, { color: theme.primary }]}>${product.price?.toFixed(2)}</Text>
             <View style={styles.ratingBadge}>
@@ -182,6 +200,7 @@ export default function DetailsScreen({ route }: { route: any }) {
               </View>
             ))}
           </View>
+
           <View style={{ height: 120 }} />
         </Animated.View>
       </ScrollView>
@@ -191,10 +210,12 @@ export default function DetailsScreen({ route }: { route: any }) {
         transform: [{ translateY: footerAnim.interpolate({ inputRange: [0, 1], outputRange: [60, 0] }) }],
       }]}>
         <View style={[styles.footerGlow, { backgroundColor: theme.primary }]} />
+
         <View style={styles.footerLeft}>
           <Text style={styles.footerLabel}>Precio</Text>
           <Text style={styles.footerPrice}>${product.price?.toFixed(2)}</Text>
         </View>
+
         <View style={styles.footerActions}>
           <Pressable
             onPress={handleFav}
@@ -206,6 +227,7 @@ export default function DetailsScreen({ route }: { route: any }) {
               <HeartIcon filled={isFavorite} />
             </Animated.View>
           </Pressable>
+
           <Pressable
             style={({ pressed }) => [
               styles.addBtn,
@@ -225,11 +247,17 @@ export default function DetailsScreen({ route }: { route: any }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  glow1: { position: 'absolute', width: 300, height: 300, borderRadius: 150, opacity: 0.07, top: -80, right: -80 },
-  glow2: { position: 'absolute', width: 200, height: 200, borderRadius: 100, opacity: 0.05, bottom: 200, left: -60 },
+  glow1: {
+    position: 'absolute', width: 300, height: 300, borderRadius: 150,
+    opacity: 0.07, top: -80, right: -80,
+  },
+  glow2: {
+    position: 'absolute', width: 200, height: 200, borderRadius: 100,
+    opacity: 0.05, bottom: 200, left: -60,
+  },
   backBtn: {
     position: 'absolute', top: 56, left: 20, zIndex: 10,
-    width: 38, height: 38, borderRadius: 12,
+    width: 40, height: 40, borderRadius: 14,
     backgroundColor: 'rgba(0,0,0,0.45)',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
@@ -247,7 +275,10 @@ const styles = StyleSheet.create({
     alignSelf: 'center', marginBottom: 22,
   },
   name: { fontSize: 28, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 10 },
-  priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 },
+  priceRow: {
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between', marginBottom: 22,
+  },
   price: { fontSize: 28, fontWeight: '900' },
   ratingBadge: {
     backgroundColor: 'rgba(245,158,11,0.15)',
@@ -259,7 +290,8 @@ const styles = StyleSheet.create({
   infoPill: {
     flex: 1, alignItems: 'center', gap: 8, paddingVertical: 14,
     backgroundColor: 'rgba(255,255,255,0.04)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
   },
   infoLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.5)' },
   descTitle: { fontSize: 17, fontWeight: '800', color: '#FFFFFF', marginBottom: 10 },
@@ -273,18 +305,27 @@ const styles = StyleSheet.create({
     padding: 20, paddingBottom: 36,
     backgroundColor: 'rgba(10,10,15,0.97)',
     borderTopLeftRadius: 26, borderTopRightRadius: 26,
-    borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.07)', overflow: 'hidden',
+    borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
+    overflow: 'hidden',
   },
-  footerGlow: { position: 'absolute', width: 180, height: 80, borderRadius: 90, opacity: 0.07, top: -20, left: 20 },
+  footerGlow: {
+    position: 'absolute', width: 180, height: 80, borderRadius: 90,
+    opacity: 0.07, top: -20, left: 20,
+  },
   footerLeft: {},
   footerLabel: { fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 2 },
   footerPrice: { fontSize: 24, fontWeight: '900', color: '#FFFFFF' },
   footerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  favDetailBtn: { width: 52, height: 52, borderRadius: 16, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  favDetailBtn: {
+    width: 52, height: 52, borderRadius: 16,
+    borderWidth: 1.5,
+    alignItems: 'center', justifyContent: 'center',
+  },
   addBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingVertical: 16, paddingHorizontal: 22, borderRadius: 18,
-    shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.5, shadowRadius: 14, elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5, shadowRadius: 14, elevation: 8,
   },
   addBtnText: { fontSize: 15, fontWeight: '800' },
 });

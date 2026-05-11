@@ -1,269 +1,284 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
-  View, Text, TextInput, Pressable, StyleSheet,
-  Alert, ActivityIndicator, KeyboardAvoidingView,
-  Platform, StatusBar, Animated,
+  View, Text, StyleSheet, Pressable,
+  Alert, StatusBar, ScrollView, Animated,
 } from 'react-native';
-import { useAppDispatch } from '../hooks/useRedux';
-import {
-  createUserWithEmailAndPassword,
-  signInWithCredential,
-  GoogleAuthProvider,
-} from 'firebase/auth';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { signOut } from 'firebase/auth';
+import * as Location from 'expo-location';
 import { useNavigation } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { auth } from '../service/firebase';
-import { setUser } from '../features/auth/authSlice';
-import { saveSession } from '../service/sessionStorage';
+import { clearUser } from '../features/auth/authSlice';
+import { setAccentColor, ACCENT_COLORS } from '../redux/uiSlice';
+import { clearSession } from '../service/sessionStorage';
+import { useTheme } from '../hooks/useTheme';
+import { isLightColor } from '../theme';
 
-function Blob({ style, delay = 0 }: { style: any; delay?: number }) {
+function StatCard({ label, value, icon, color, delay }) {
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(anim, { toValue: 1, duration: 3200 + delay, useNativeDriver: true, delay }),
-        Animated.timing(anim, { toValue: 0, duration: 3200 + delay, useNativeDriver: true }),
-      ])
-    ).start();
+    Animated.spring(anim, { toValue: 1, tension: 60, friction: 10, delay, useNativeDriver: true }).start();
   }, []);
-  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [0, -18] });
-  const scale = anim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
-  return <Animated.View style={[style, { transform: [{ translateY }, { scale }] }]} />;
+  return (
+    <Animated.View style={[styles.stat, {
+      opacity: anim,
+      transform: [{ scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }],
+    }]}>
+      <View style={[styles.statIcon, { backgroundColor: `${color}18` }]}>
+        <MaterialIcons name={icon} size={20} color={color} />
+      </View>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </Animated.View>
+  );
 }
 
-export default function RegisterScreen() {
+export default function ProfileScreen() {
+  const user = useAppSelector((state) => state.auth.user);
+  const orders = useAppSelector((state) => state.orders.orders);
+  const cartCount = useAppSelector((state) => state.cart.items.length);
+  const favorites = useAppSelector((state) => state.favorites.items);
+  const accentColor = useAppSelector((state) => state.ui.accentColor ?? '#E85D26');
+  const theme = useTheme();
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<any>();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+  const navigation = useNavigation();
+  const [location, setLocation] = useState(null);
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(40)).current;
+  const headerAnim = useRef(new Animated.Value(0)).current;
+  const contentAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
+    Animated.stagger(150, [
+      Animated.spring(headerAnim, { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
+      Animated.spring(contentAnim, { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
     ]).start();
+
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({});
+          setLocation(loc.coords);
+        }
+      } catch (e) {
+        // Location no disponible en este dispositivo/emulador
+      }
+    })();
   }, []);
 
-  const handleGoogleRegister = async () => {
-    try {
-      setGoogleLoading(true);
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-      const idToken = (userInfo as any).data?.idToken ?? (userInfo as any).idToken;
-      if (!idToken) throw new Error('No se recibió token de Google');
-      const credential = GoogleAuthProvider.credential(idToken);
-      const { user } = await signInWithCredential(auth, credential);
-      await saveSession(user.email!, user.uid);
-      dispatch(setUser({ email: user.email!, uid: user.uid }));
-      navigation.replace('Main');
-    } catch (error: any) {
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) return;
-      if (error.code === statusCodes.IN_PROGRESS) return;
-      if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        Alert.alert('Error', 'Google Play Services no disponible');
-        return;
-      }
-      Alert.alert('Error Google', error.message);
-    } finally {
-      setGoogleLoading(false);
-    }
+  const handleLogout = () => {
+    Alert.alert('Cerrar sesión', '¿Estás seguro?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Salir', style: 'destructive',
+        onPress: async () => {
+          await signOut(auth);
+          await clearSession();
+          dispatch(clearUser());
+          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+        },
+      },
+    ]);
   };
 
-  const validate = () => {
-    if (!email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Todos los campos son obligatorios');
-      return false;
-    }
-    if (password.length < 6) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
-      return false;
-    }
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
-      return false;
-    }
-    return true;
-  };
-
-  const handleRegister = async () => {
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      await saveSession(user.email!, user.uid);
-      dispatch(setUser({ email: user.email!, uid: user.uid }));
-      navigation.replace('Main');
-    } catch (error: any) {
-      const msg = error.code === 'auth/email-already-in-use'
-        ? 'Ese email ya está registrado'
-        : error.message;
-      Alert.alert('Error', msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const username = user?.email?.split('@')[0] || 'Usuario';
+  const initial = username.charAt(0).toUpperCase();
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.root}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar barStyle="light-content" />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
+      <View style={[styles.bgGlow1, { backgroundColor: accentColor }]} />
+      <View style={styles.bgGlow2} />
 
-      <View style={styles.bg} />
-      <Blob style={styles.blob1} delay={400} />
-      <Blob style={styles.blob2} delay={0} />
-      <Blob style={styles.blob3} delay={900} />
-
-      <Animated.ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-        style={{ opacity: fadeAnim }}
-        showsVerticalScrollIndicator={false}
-      >
-        <Animated.View style={[styles.hero, { transform: [{ translateY: slideAnim }] }]}>
-          <View style={styles.logoRing}>
-            <Text style={styles.logoEmoji}>🍞</Text>
-          </View>
-          <Text style={styles.heroTitle}>Roma Store</Text>
-          <Text style={styles.heroSub}>Creá tu cuenta gratis</Text>
-        </Animated.View>
-
-        <Animated.View style={[styles.card, { transform: [{ translateY: slideAnim }] }]}>
-          <Text style={styles.cardTitle}>Crear cuenta</Text>
-
-          <Pressable
-            style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed]}
-            onPress={handleGoogleRegister}
-            disabled={googleLoading}
-          >
-            <View style={styles.googleIconWrap}>
-              <Text style={styles.googleG}>G</Text>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Animated.View style={[styles.profileHeader, {
+          opacity: headerAnim,
+          transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
+        }]}>
+          <View style={[styles.avatarRing, { borderColor: accentColor, shadowColor: accentColor }]}>
+            <View style={[styles.avatarInner, { backgroundColor: `${accentColor}30` }]}>
+              <Text style={[styles.avatarInitial, { color: accentColor }]}>{initial}</Text>
             </View>
-            {googleLoading
-              ? <ActivityIndicator color="#1A1208" style={{ flex: 1 }} />
-              : <Text style={styles.googleBtnText}>Registrarse con Google</Text>
-            }
-          </Pressable>
-
-          <View style={styles.divRow}>
-            <View style={styles.divLine} />
-            <Text style={styles.divText}>o con email</Text>
-            <View style={styles.divLine} />
           </View>
+          <Text style={styles.profileName}>{username}</Text>
+          <Text style={styles.profileEmail}>{user?.email}</Text>
+          {location && (
+            <View style={styles.locationRow}>
+              <MaterialIcons name="location-on" size={13} color={accentColor} />
+              <Text style={styles.locationText}>
+                {location.latitude.toFixed(3)}°, {location.longitude.toFixed(3)}°
+              </Text>
+            </View>
+          )}
+          <View style={styles.memberBadge}>
+            <Text style={styles.memberBadgeText}>⭐ Miembro Premium</Text>
+          </View>
+        </Animated.View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Correo electrónico"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            onChangeText={setEmail}
-            value={email}
-            placeholderTextColor="#9CA3AF"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Contraseña (mín. 6 caracteres)"
-            secureTextEntry
-            onChangeText={setPassword}
-            value={password}
-            placeholderTextColor="#9CA3AF"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirmar contraseña"
-            secureTextEntry
-            onChangeText={setConfirmPassword}
-            value={confirmPassword}
-            placeholderTextColor="#9CA3AF"
-          />
+        <Animated.View style={[styles.statsRow, {
+          opacity: contentAnim,
+          transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+        }]}>
+          <StatCard label="Pedidos" value={orders.length} icon="receipt-long" color={accentColor} delay={200} />
+          <StatCard label="En carrito" value={cartCount} icon="shopping-cart" color="#7C3AED" delay={300} />
+          <StatCard label="Favoritos" value={favorites.length} icon="favorite" color="#FF4D6D" delay={400} />
+        </Animated.View>
 
+        {favorites.length > 0 && (
+          <Animated.View style={[styles.section, {
+            opacity: contentAnim,
+            transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+          }]}>
+            <Text style={styles.sectionLabel}>MIS FAVORITOS</Text>
+            {favorites.map((item) => (
+              <View key={item.id} style={styles.favRow}>
+                <MaterialIcons name="favorite" size={16} color="#FF4D6D" />
+                <Text style={styles.favName}>{item.name.charAt(0).toUpperCase() + item.name.slice(1)}</Text>
+                <Text style={[styles.favPrice, { color: accentColor }]}>${item.price?.toFixed(2)}</Text>
+              </View>
+            ))}
+          </Animated.View>
+        )}
+
+        <Animated.View style={[styles.section, {
+          opacity: contentAnim,
+          transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+        }]}>
+          <Text style={styles.sectionLabel}>COLOR DE ACENTO</Text>
+          <View style={styles.colorRow}>
+            {ACCENT_COLORS.map((color) => {
+              const isSelected = accentColor === color;
+              return (
+                <Pressable
+                  key={color}
+                  onPress={() => dispatch(setAccentColor(color))}
+                  style={[
+                    styles.colorDot,
+                    { backgroundColor: color },
+                    isSelected && [styles.colorDotActive, { borderColor: '#FFFFFF', shadowColor: color }],
+                  ]}
+                >
+                  {isSelected && (
+                    <Text style={[styles.colorCheck, { color: isLightColor(color) ? '#0A0A0F' : '#FFFFFF' }]}>✓</Text>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+          <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
+            <View style={[styles.settingIcon, { backgroundColor: `${accentColor}20` }]}>
+              <MaterialIcons name="info-outline" size={18} color={accentColor} />
+            </View>
+            <Text style={styles.settingText}>Versión</Text>
+            <Text style={styles.settingValue}>Roma Store 1.0</Text>
+          </View>
+        </Animated.View>
+
+        <Animated.View style={{ opacity: contentAnim }}>
           <Pressable
-            style={({ pressed }) => [styles.submitBtn, pressed && styles.pressed]}
-            onPress={handleRegister}
-            disabled={loading}
+            style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
+            onPress={handleLogout}
           >
-            {loading
-              ? <ActivityIndicator color="#fff" />
-              : <Text style={styles.submitBtnText}>Crear cuenta</Text>
-            }
-          </Pressable>
-
-          <Pressable onPress={() => navigation.navigate('Login')} style={styles.loginRow}>
-            <Text style={styles.loginText}>
-              ¿Ya tenés cuenta?{'  '}
-              <Text style={styles.loginLink}>Iniciá sesión</Text>
-            </Text>
+            <MaterialIcons name="logout" size={18} color="#FF4D4D" />
+            <Text style={styles.logoutText}>Cerrar sesión</Text>
           </Pressable>
         </Animated.View>
 
-        <Text style={styles.footer}>Al continuar, aceptás nuestros términos de uso</Text>
-      </Animated.ScrollView>
-    </KeyboardAvoidingView>
+        <View style={{ height: 120 }} />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-  bg: { ...StyleSheet.absoluteFillObject, backgroundColor: '#0F0A1E' },
-  blob1: {
-    position: 'absolute', width: 260, height: 260, borderRadius: 130,
-    backgroundColor: '#7C3AED', opacity: 0.22, top: -40, right: -70,
+  container: { flex: 1 },
+  bgGlow1: {
+    position: 'absolute', width: 300, height: 300, borderRadius: 150,
+    opacity: 0.06, top: -60, left: -80,
   },
-  blob2: {
+  bgGlow2: {
     position: 'absolute', width: 200, height: 200, borderRadius: 100,
-    backgroundColor: '#E85D26', opacity: 0.20, top: 200, left: -60,
+    backgroundColor: '#7C3AED', opacity: 0.06, top: 200, right: -60,
   },
-  blob3: {
-    position: 'absolute', width: 160, height: 160, borderRadius: 80,
-    backgroundColor: '#10B981', opacity: 0.15, bottom: 180, right: 10,
+  profileHeader: {
+    alignItems: 'center',
+    paddingTop: 64, paddingBottom: 32, paddingHorizontal: 24,
   },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 24, paddingBottom: 40 },
-  hero: { alignItems: 'center', marginBottom: 32 },
-  logoRing: {
-    width: 88, height: 88, borderRadius: 44,
-    backgroundColor: 'rgba(124,58,237,0.18)',
-    borderWidth: 2, borderColor: 'rgba(124,58,237,0.45)',
-    alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+  avatarRing: {
+    width: 100, height: 100, borderRadius: 50,
+    borderWidth: 2, padding: 3, marginBottom: 16,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5, shadowRadius: 16, elevation: 10,
   },
-  logoEmoji: { fontSize: 44 },
-  heroTitle: { fontSize: 34, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 5 },
-  heroSub: { fontSize: 14, color: 'rgba(255,255,255,0.5)' }, // fixed: was "font size"
-  card: {
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 28, padding: 28,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+  avatarInner: {
+    flex: 1, borderRadius: 44,
+    alignItems: 'center', justifyContent: 'center',
   },
-  cardTitle: { fontSize: 22, fontWeight: '800', color: '#FFFFFF', marginBottom: 22, textAlign: 'center' },
-  googleBtn: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
-    borderRadius: 16, paddingVertical: 15, paddingHorizontal: 20, marginBottom: 20,
-    shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
+  avatarInitial: { fontSize: 38, fontWeight: '900' },
+  profileName: { fontSize: 24, fontWeight: '900', color: '#FFFFFF', marginBottom: 4, letterSpacing: -0.3 },
+  profileEmail: { fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 10 },
+  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 14 },
+  locationText: { fontSize: 12, color: 'rgba(255,255,255,0.35)' },
+  memberBadge: {
+    backgroundColor: 'rgba(245,158,11,0.15)',
+    borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)',
+    borderRadius: 20, paddingHorizontal: 16, paddingVertical: 6,
   },
-  googleIconWrap: {
-    width: 30, height: 30, borderRadius: 15, backgroundColor: '#4285F4',
-    alignItems: 'center', justifyContent: 'center', marginRight: 14,
+  memberBadgeText: { fontSize: 13, fontWeight: '700', color: '#F59E0B' },
+  statsRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginBottom: 24 },
+  stat: {
+    flex: 1, alignItems: 'center', padding: 16, borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', gap: 6,
   },
-  googleG: { color: '#fff', fontSize: 16, fontWeight: '900' },
-  googleBtnText: { flex: 1, textAlign: 'center', marginRight: 30, fontSize: 15, fontWeight: '700', color: '#1A1208' },
-  divRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
-  divLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
-  divText: { color: 'rgba(255,255,255,0.3)', fontSize: 12 },
-  input: {
-    height: 52, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14,
-    paddingHorizontal: 16, color: '#FFFFFF', marginBottom: 16,
+  statIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  statValue: { fontSize: 22, fontWeight: '900', color: '#FFFFFF' },
+  statLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.35)' },
+  section: {
+    marginHorizontal: 20, borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
+    paddingHorizontal: 18, marginBottom: 16, overflow: 'hidden',
   },
-  submitBtn: {
-    paddingVertical: 16, borderRadius: 16, alignItems: 'center', marginBottom: 18,
-    backgroundColor: '#7C3AED',
+  sectionLabel: {
+    fontSize: 10, fontWeight: '800', letterSpacing: 1.8,
+    color: 'rgba(255,255,255,0.25)', paddingTop: 16, paddingBottom: 10,
   },
-  submitBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
-  loginRow: { marginTop: 12, alignItems: 'center' },
-  loginText: { color: 'rgba(255,255,255,0.6)', fontSize: 13 },
-  loginLink: { color: '#FFFFFF', fontWeight: '800' },
-  footer: { marginTop: 28, textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 12 },
-  pressed: { opacity: 0.85 },
+  favRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  favName: { flex: 1, fontSize: 14, fontWeight: '600', color: '#FFFFFF' },
+  favPrice: { fontSize: 14, fontWeight: '800' },
+  colorRow: {
+    flexDirection: 'row', gap: 12,
+    paddingVertical: 16, flexWrap: 'wrap',
+  },
+  colorDot: {
+    width: 36, height: 36, borderRadius: 18,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  colorDotActive: {
+    borderWidth: 3,
+    shadowOpacity: 0.4, shadowRadius: 6, elevation: 4,
+  },
+  colorCheck: { fontSize: 16, fontWeight: '900' },
+  settingRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    paddingVertical: 14,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  settingIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  settingText: { flex: 1, fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
+  settingValue: { fontSize: 13, color: 'rgba(255,255,255,0.35)' },
+  logoutBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+    marginHorizontal: 20, paddingVertical: 16, borderRadius: 18,
+    backgroundColor: 'rgba(255,77,77,0.1)',
+    borderWidth: 1, borderColor: 'rgba(255,77,77,0.25)',
+  },
+  logoutText: { fontSize: 16, fontWeight: '800', color: '#FF4D4D' },
 });

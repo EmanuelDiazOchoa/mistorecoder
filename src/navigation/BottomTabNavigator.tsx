@@ -12,7 +12,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
-function IconHome({ color, size = 24 }: { color: string; size?: number }) {
+function IconHome({ color, size = 24 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -23,7 +23,7 @@ function IconHome({ color, size = 24 }: { color: string; size?: number }) {
   );
 }
 
-function IconGrid({ color, size = 24 }: { color: string; size?: number }) {
+function IconGrid({ color, size = 24 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Rect x="3" y="3" width="7" height="7" rx="2" stroke={color} strokeWidth={1.8} fill="none" />
@@ -34,7 +34,7 @@ function IconGrid({ color, size = 24 }: { color: string; size?: number }) {
   );
 }
 
-function IconBag({ color, size = 24 }: { color: string; size?: number }) {
+function IconBag({ color, size = 24 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -50,7 +50,7 @@ function IconBag({ color, size = 24 }: { color: string; size?: number }) {
   );
 }
 
-function IconReceipt({ color, size = 24 }: { color: string; size?: number }) {
+function IconReceipt({ color, size = 24 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -64,7 +64,7 @@ function IconReceipt({ color, size = 24 }: { color: string; size?: number }) {
   );
 }
 
-function IconUser({ color, size = 24 }: { color: string; size?: number }) {
+function IconUser({ color, size = 24 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="12" cy="8" r="4" stroke={color} strokeWidth={1.8} fill="none" />
@@ -84,17 +84,7 @@ const TABS = [
   { name: 'Profile', label: 'Perfil', Icon: IconUser },
 ];
 
-interface TabButtonProps {
-  isFocused: boolean;
-  label: string;
-  Icon: React.ComponentType<{ color: string; size?: number }>;
-  isCart: boolean;
-  cartCount: number;
-  onPress: () => void;
-  accentColor: string;
-}
-
-function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress, accentColor }: TabButtonProps) {
+function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress, accentColor }) {
   const scale = useRef(new Animated.Value(1)).current;
   const glow = useRef(new Animated.Value(0)).current;
   const labelO = useRef(new Animated.Value(isFocused ? 1 : 0)).current;
@@ -144,7 +134,7 @@ function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress, accentC
   );
 }
 
-function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
+function CustomTabBar({ state, navigation }) {
   const cartCount = useAppSelector((s) => s.cart.items.length);
   const accentColor = useAppSelector((s) => s.ui.accentColor ?? '#E85D26');
 
@@ -152,15 +142,15 @@ function CustomTabBar({ state, navigation }: { state: any; navigation: any }) {
     <View style={styles.barOuter}>
       <View style={styles.barInner}>
         <View style={styles.topLine} />
-        {state.routes.map((route: any, index: number) => {
+        {state.routes.map((route, index) => {
           const tab = TABS.find((t) => t.name === route.name);
           const isFocused = state.index === index;
           return (
             <TabButton
               key={route.key}
               isFocused={isFocused}
-              label={tab?.label ?? ''}
-              Icon={tab?.Icon ?? IconHome}
+              label={tab?.label || ''}
+              Icon={tab?.Icon || IconHome}
               isCart={route.name === 'Cart'}
               cartCount={cartCount}
               accentColor={accentColor}

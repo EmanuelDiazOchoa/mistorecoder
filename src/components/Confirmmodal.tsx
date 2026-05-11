@@ -7,25 +7,12 @@ import { isLightColor } from '../theme';
 
 const { height } = Dimensions.get('window');
 
-interface ConfirmModalProps {
-  visible: boolean;
-  title: string;
-  subtitle?: string;
-  body?: string;
-  confirmText?: string;
-  cancelText?: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-  accentColor?: string;
-  confirmDestructive?: boolean;
-}
-
 export default function ConfirmModal({
   visible, title, subtitle, body,
   confirmText = 'Confirmar', cancelText = 'Cancelar',
   onConfirm, onCancel, accentColor = '#E85D26',
   confirmDestructive = false,
-}: ConfirmModalProps) {
+}) {
   const slideAnim = useRef(new Animated.Value(height)).current;
   const backdropOp = useRef(new Animated.Value(0)).current;
 

@@ -14,10 +14,6 @@ const firebaseConfig = {
 };
 
 const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-
-// En Firebase 11 + React Native, initializeAuth sin persistence
-// usa ReactNativeAsyncStorage automáticamente si detecta el entorno.
-// Para forzarlo explícitamente usamos la clase de persistencia custom:
 const reactNativePersistence = {
   type: 'LOCAL' as const,
   async _isAvailable() { return true; },
@@ -32,7 +28,6 @@ let auth: Auth;
 try {
   auth = initializeAuth(app, { persistence: reactNativePersistence });
 } catch {
-  // Ya inicializado (hot reload de Expo)
   auth = getAuth(app);
 }
 

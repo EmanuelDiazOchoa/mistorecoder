@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { signOut } from 'firebase/auth';
 import * as Location from 'expo-location';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { auth } from '../service/firebase';
 import { clearUser } from '../features/auth/authSlice';
@@ -14,8 +15,22 @@ import { setAccentColor, ACCENT_COLORS } from '../redux/uiSlice';
 import { clearSession } from '../service/sessionStorage';
 import { useTheme } from '../hooks/useTheme';
 import { isLightColor } from '../theme';
+import { RootStackParamList } from '../types';
 
-function StatCard({ label, value, icon, color, delay }) {
+interface Coords {
+  latitude: number;
+  longitude: number;
+}
+
+interface StatCardProps {
+  label: string;
+  value: number;
+  icon: string;
+  color: string;
+  delay: number;
+}
+
+function StatCard({ label, value, icon, color, delay }: StatCardProps) {
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.spring(anim, { toValue: 1, tension: 60, friction: 10, delay, useNativeDriver: true }).start();
@@ -26,7 +41,7 @@ function StatCard({ label, value, icon, color, delay }) {
       transform: [{ scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }],
     }]}>
       <View style={[styles.statIcon, { backgroundColor: `${color}18` }]}>
-        <MaterialIcons name={icon} size={20} color={color} />
+        <MaterialIcons name={icon as any} size={20} color={color} />
       </View>
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
@@ -35,22 +50,22 @@ function StatCard({ label, value, icon, color, delay }) {
 }
 
 export default function ProfileScreen() {
-  const user = useAppSelector((state) => state.auth.user);
-  const orders = useAppSelector((state) => state.orders.orders);
-  const cartCount = useAppSelector((state) => state.cart.items.length);
-  const favorites = useAppSelector((state) => state.favorites.items);
+  const user        = useAppSelector((state) => state.auth.user);
+  const orders      = useAppSelector((state) => state.orders.orders);
+  const cartCount   = useAppSelector((state) => state.cart.items.length);
+  const favorites   = useAppSelector((state) => state.favorites.items);
   const accentColor = useAppSelector((state) => state.ui.accentColor ?? '#E85D26');
-  const theme = useTheme();
-  const dispatch = useAppDispatch();
-  const navigation = useNavigation();
-  const [location, setLocation] = useState(null);
+  const theme       = useTheme();
+  const dispatch    = useAppDispatch();
+  const navigation  = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [location, setLocation] = useState<Coords | null>(null);
 
-  const headerAnim = useRef(new Animated.Value(0)).current;
+  const headerAnim  = useRef(new Animated.Value(0)).current;
   const contentAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.stagger(150, [
-      Animated.spring(headerAnim, { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
+      Animated.spring(headerAnim,  { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
       Animated.spring(contentAnim, { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
     ]).start();
 
@@ -59,9 +74,9 @@ export default function ProfileScreen() {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status === 'granted') {
           const loc = await Location.getCurrentPositionAsync({});
-          setLocation(loc.coords);
+          setLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
         }
-      } catch (e) {
+      } catch {
         // Location no disponible en este dispositivo/emulador
       }
     })();
@@ -82,8 +97,8 @@ export default function ProfileScreen() {
     ]);
   };
 
-  const username = user?.email?.split('@')[0] || 'Usuario';
-  const initial = username.charAt(0).toUpperCase();
+  const username = user?.email?.split('@')[0] ?? 'Usuario';
+  const initial  = username.charAt(0).toUpperCase();
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -93,6 +108,7 @@ export default function ProfileScreen() {
       <View style={styles.bgGlow2} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* ── Header / Avatar ── */}
         <Animated.View style={[styles.profileHeader, {
           opacity: headerAnim,
           transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
@@ -117,15 +133,17 @@ export default function ProfileScreen() {
           </View>
         </Animated.View>
 
+        {/* ── Stats ── */}
         <Animated.View style={[styles.statsRow, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
         }]}>
-          <StatCard label="Pedidos" value={orders.length} icon="receipt-long" color={accentColor} delay={200} />
-          <StatCard label="En carrito" value={cartCount} icon="shopping-cart" color="#7C3AED" delay={300} />
-          <StatCard label="Favoritos" value={favorites.length} icon="favorite" color="#FF4D6D" delay={400} />
+          <StatCard label="Pedidos"    value={orders.length}    icon="receipt-long"   color={accentColor} delay={200} />
+          <StatCard label="En carrito" value={cartCount}        icon="shopping-cart"  color="#7C3AED"     delay={300} />
+          <StatCard label="Favoritos"  value={favorites.length} icon="favorite"       color="#FF4D6D"     delay={400} />
         </Animated.View>
 
+        {/* ── Favorites list ── */}
         {favorites.length > 0 && (
           <Animated.View style={[styles.section, {
             opacity: contentAnim,
@@ -142,6 +160,7 @@ export default function ProfileScreen() {
           </Animated.View>
         )}
 
+        {/* ── Accent color picker + version ── */}
         <Animated.View style={[styles.section, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
@@ -176,6 +195,7 @@ export default function ProfileScreen() {
           </View>
         </Animated.View>
 
+        {/* ── Logout ── */}
         <Animated.View style={{ opacity: contentAnim }}>
           <Pressable
             style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
@@ -194,91 +214,36 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  bgGlow1: {
-    position: 'absolute', width: 300, height: 300, borderRadius: 150,
-    opacity: 0.06, top: -60, left: -80,
-  },
-  bgGlow2: {
-    position: 'absolute', width: 200, height: 200, borderRadius: 100,
-    backgroundColor: '#7C3AED', opacity: 0.06, top: 200, right: -60,
-  },
-  profileHeader: {
-    alignItems: 'center',
-    paddingTop: 64, paddingBottom: 32, paddingHorizontal: 24,
-  },
-  avatarRing: {
-    width: 100, height: 100, borderRadius: 50,
-    borderWidth: 2, padding: 3, marginBottom: 16,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5, shadowRadius: 16, elevation: 10,
-  },
-  avatarInner: {
-    flex: 1, borderRadius: 44,
-    alignItems: 'center', justifyContent: 'center',
-  },
+  bgGlow1: { position: 'absolute', width: 300, height: 300, borderRadius: 150, opacity: 0.06, top: -60, left: -80 },
+  bgGlow2: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: '#7C3AED', opacity: 0.06, top: 200, right: -60 },
+  profileHeader: { alignItems: 'center', paddingTop: 64, paddingBottom: 32, paddingHorizontal: 24 },
+  avatarRing: { width: 100, height: 100, borderRadius: 50, borderWidth: 2, padding: 3, marginBottom: 16, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 16, elevation: 10 },
+  avatarInner: { flex: 1, borderRadius: 44, alignItems: 'center', justifyContent: 'center' },
   avatarInitial: { fontSize: 38, fontWeight: '900' },
   profileName: { fontSize: 24, fontWeight: '900', color: '#FFFFFF', marginBottom: 4, letterSpacing: -0.3 },
   profileEmail: { fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 10 },
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 14 },
   locationText: { fontSize: 12, color: 'rgba(255,255,255,0.35)' },
-  memberBadge: {
-    backgroundColor: 'rgba(245,158,11,0.15)',
-    borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)',
-    borderRadius: 20, paddingHorizontal: 16, paddingVertical: 6,
-  },
+  memberBadge: { backgroundColor: 'rgba(245,158,11,0.15)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 6 },
   memberBadgeText: { fontSize: 13, fontWeight: '700', color: '#F59E0B' },
   statsRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginBottom: 24 },
-  stat: {
-    flex: 1, alignItems: 'center', padding: 16, borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', gap: 6,
-  },
+  stat: { flex: 1, alignItems: 'center', padding: 16, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', gap: 6 },
   statIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   statValue: { fontSize: 22, fontWeight: '900', color: '#FFFFFF' },
   statLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.35)' },
-  section: {
-    marginHorizontal: 20, borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
-    paddingHorizontal: 18, marginBottom: 16, overflow: 'hidden',
-  },
-  sectionLabel: {
-    fontSize: 10, fontWeight: '800', letterSpacing: 1.8,
-    color: 'rgba(255,255,255,0.25)', paddingTop: 16, paddingBottom: 10,
-  },
-  favRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
-  },
+  section: { marginHorizontal: 20, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', paddingHorizontal: 18, marginBottom: 16, overflow: 'hidden' },
+  sectionLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 1.8, color: 'rgba(255,255,255,0.25)', paddingTop: 16, paddingBottom: 10 },
+  favRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
   favName: { flex: 1, fontSize: 14, fontWeight: '600', color: '#FFFFFF' },
   favPrice: { fontSize: 14, fontWeight: '800' },
-  colorRow: {
-    flexDirection: 'row', gap: 12,
-    paddingVertical: 16, flexWrap: 'wrap',
-  },
-  colorDot: {
-    width: 36, height: 36, borderRadius: 18,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  colorDotActive: {
-    borderWidth: 3,
-    shadowOpacity: 0.4, shadowRadius: 6, elevation: 4,
-  },
+  colorRow: { flexDirection: 'row', gap: 12, paddingVertical: 16, flexWrap: 'wrap' },
+  colorDot: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  colorDotActive: { borderWidth: 3, shadowOpacity: 0.4, shadowRadius: 6, elevation: 4 },
   colorCheck: { fontSize: 16, fontWeight: '900' },
-  settingRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
-  },
+  settingRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
   settingIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   settingText: { flex: 1, fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
   settingValue: { fontSize: 13, color: 'rgba(255,255,255,0.35)' },
-  logoutBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
-    marginHorizontal: 20, paddingVertical: 16, borderRadius: 18,
-    backgroundColor: 'rgba(255,77,77,0.1)',
-    borderWidth: 1, borderColor: 'rgba(255,77,77,0.25)',
-  },
+  logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginHorizontal: 20, paddingVertical: 16, borderRadius: 18, backgroundColor: 'rgba(255,77,77,0.1)', borderWidth: 1, borderColor: 'rgba(255,77,77,0.25)' },
   logoutText: { fontSize: 16, fontWeight: '800', color: '#FF4D4D' },
 });

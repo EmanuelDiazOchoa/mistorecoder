@@ -14,6 +14,7 @@ import { getProductImage } from '../utils/productImages';
 import { useTheme } from '../hooks/useTheme';
 import ConfirmModal from '../components/ConfirmModal';
 import * as Notifications from 'expo-notifications';
+import { CartItem as CartItemType } from '../types';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -24,7 +25,16 @@ Notifications.setNotificationHandler({
   }),
 });
 
-function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove }) {
+interface CartItemProps {
+  item: CartItemType;
+  index: number;
+  accentColor: string;
+  onIncrement: () => void;
+  onDecrement: () => void;
+  onRemove: () => void;
+}
+
+function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove }: CartItemProps) {
   const anim = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -73,6 +83,8 @@ function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove
   );
 }
 
+type ModalType = 'purchase' | 'clear' | null;
+
 export default function CartScreen() {
   const dispatch = useAppDispatch();
   const theme = useTheme();
@@ -81,7 +93,7 @@ export default function CartScreen() {
   const total = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const totalUnits = cartItems.reduce((sum, i) => sum + i.quantity, 0);
 
-  const [modal, setModal] = useState({ type: null });
+  const [modalType, setModalType] = useState<ModalType>(null);
   const footerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -90,10 +102,10 @@ export default function CartScreen() {
     }).start();
   }, []);
 
-  const handlePurchase = () => setModal({ type: 'purchase' });
+  const handlePurchase = () => setModalType('purchase');
 
   const confirmPurchase = async () => {
-    setModal({ type: null });
+    setModalType(null);
     dispatch(addOrder({ items: cartItems, total }));
     dispatch(clearCart());
     await Notifications.scheduleNotificationAsync({
@@ -113,7 +125,7 @@ export default function CartScreen() {
       <View style={[styles.bgGlow, { backgroundColor: accentColor }]} />
 
       <ConfirmModal
-        visible={modal.type === 'purchase'}
+        visible={modalType === 'purchase'}
         title="Confirmar pedido"
         subtitle={`$${total.toFixed(2)}`}
         body={`${totalUnits} producto${totalUnits !== 1 ? 's' : ''} · Entrega estimada 30 min`}
@@ -121,25 +133,26 @@ export default function CartScreen() {
         cancelText="Cancelar"
         accentColor={accentColor}
         onConfirm={confirmPurchase}
-        onCancel={() => setModal({ type: null })}
+        onCancel={() => setModalType(null)}
       />
 
       <ConfirmModal
-        visible={modal.type === 'clear'}
+        visible={modalType === 'clear'}
         title="Vaciar carrito"
+        subtitle=""
         body="Se eliminarán todos los productos. ¿Estás seguro?"
         confirmText="Vaciar todo"
         cancelText="Cancelar"
         accentColor={accentColor}
         confirmDestructive
-        onConfirm={() => { dispatch(clearCart()); setModal({ type: null }); }}
-        onCancel={() => setModal({ type: null })}
+        onConfirm={() => { dispatch(clearCart()); setModalType(null); }}
+        onCancel={() => setModalType(null)}
       />
 
       <View style={styles.header}>
         <Text style={styles.title}>Carrito</Text>
         {cartItems.length > 0 && (
-          <Pressable onPress={() => setModal({ type: 'clear' })}>
+          <Pressable onPress={() => setModalType('clear')}>
             <Text style={styles.clearBtn}>Vaciar</Text>
           </Pressable>
         )}

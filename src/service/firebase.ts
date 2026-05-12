@@ -1,7 +1,10 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { initializeAuth, getAuth, Auth, browserLocalPersistence } from 'firebase/auth';
+import { initializeAuth, getAuth, Auth } from 'firebase/auth';
 import { getDatabase, Database } from 'firebase/database';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+
+// @ts-ignore
+import { getReactNativePersistence } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey:            process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -14,19 +17,12 @@ const firebaseConfig = {
 };
 
 const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const reactNativePersistence = {
-  type: 'LOCAL' as const,
-  async _isAvailable() { return true; },
-  async _set(key: string, value: string) { await AsyncStorage.setItem(key, value); },
-  async _get(key: string) { return AsyncStorage.getItem(key); },
-  async _remove(key: string) { await AsyncStorage.removeItem(key); },
-  _addListener(_key: string, _listener: unknown) {},
-  _removeListener(_key: string, _listener: unknown) {},
-};
 
 let auth: Auth;
 try {
-  auth = initializeAuth(app, { persistence: reactNativePersistence });
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+  });
 } catch {
   auth = getAuth(app);
 }

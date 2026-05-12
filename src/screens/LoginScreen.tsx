@@ -8,9 +8,23 @@ import { signInWithEmailAndPassword, signInWithCredential, GoogleAuthProvider } 
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { useAppDispatch } from '../hooks/useRedux';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';
 import { saveSession } from '../service/sessionStorage';
+import { RootStackParamList } from '../types';
+import Svg, { Path } from 'react-native-svg';
+
+function IconChevronLeft({ color = '#FFFFFF', size = 20 }: { color?: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M15 18L9 12L15 6"
+        stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
 
 function Blob({ style, delay = 0 }: { style: any; delay?: number }) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -23,25 +37,26 @@ function Blob({ style, delay = 0 }: { style: any; delay?: number }) {
     ).start();
   }, []);
   const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [0, -18] });
-  const scale = anim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
+  const scale      = anim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
   return <Animated.View style={[style, { transform: [{ translateY }, { scale }] }]} />;
 }
 
 export default function LoginScreen() {
-  const dispatch = useAppDispatch();
-  const navigation = useNavigation<any>();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [showEmail, setShowEmail] = useState(false);
+  const dispatch   = useAppDispatch();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [email,         setEmail]         = useState('');
+  const [password,      setPassword]      = useState('');
+  const [loading,       setLoading]       = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [showEmail,     setShowEmail]     = useState(false);
+
+  const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+      Animated.timing(fadeAnim,  { toValue: 1, duration: 700, useNativeDriver: true }),
       Animated.spring(slideAnim, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
     ]).start();
   }, []);
@@ -50,17 +65,20 @@ export default function LoginScreen() {
     try {
       setGoogleLoading(true);
       await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-      const idToken = (userInfo as any).data?.idToken ?? (userInfo as any).idToken;
+      // Usamos any acá porque los tipos del SDK varían entre versiones
+      const response: any = await GoogleSignin.signIn();
+      // v11 del SDK: idToken en response.data.idToken
+      // versiones anteriores: response.idToken
+      const idToken: string | null = response?.data?.idToken ?? response?.idToken ?? null;
       if (!idToken) throw new Error('No se recibió token de Google');
       const credential = GoogleAuthProvider.credential(idToken);
-      const { user } = await signInWithCredential(auth, credential);
+      const { user }   = await signInWithCredential(auth, credential);
       await saveSession(user.email!, user.uid);
       dispatch(setUser({ email: user.email!, uid: user.uid }));
       navigation.replace('Main');
     } catch (error: any) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) return;
-      if (error.code === statusCodes.IN_PROGRESS) return;
+      if (error.code === statusCodes.IN_PROGRESS)       return;
       if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         Alert.alert('Error', 'Google Play Services no disponible');
         return;
@@ -100,6 +118,7 @@ export default function LoginScreen() {
         style={{ opacity: fadeAnim }}
         showsVerticalScrollIndicator={false}
       >
+        {/* ── Hero ── */}
         <Animated.View style={[styles.hero, { transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.logoRing}>
             <Text style={styles.logoEmoji}>🍞</Text>
@@ -108,6 +127,7 @@ export default function LoginScreen() {
           <Text style={styles.heroSub}>Tu panadería artesanal favorita</Text>
         </Animated.View>
 
+        {/* ── Card ── */}
         <Animated.View style={[styles.card, { transform: [{ translateY: slideAnim }] }]}>
           {!showEmail ? (
             <>
@@ -150,9 +170,14 @@ export default function LoginScreen() {
             </>
           ) : (
             <>
-              <Pressable onPress={() => setShowEmail(false)} style={styles.backRow}>
-                <Text style={styles.backText}>← Volver</Text>
+              {/* ── Botón volver con SVG ── */}
+              <Pressable onPress={() => setShowEmail(false)} style={styles.backRow} hitSlop={12}>
+                <View style={styles.backIconWrap}>
+                  <IconChevronLeft color="#FFFFFF" size={18} />
+                </View>
+                <Text style={styles.backText}>Volver</Text>
               </Pressable>
+
               <Text style={styles.cardTitle}>Con tu email</Text>
 
               <TextInput
@@ -202,71 +227,47 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  bg: { ...StyleSheet.absoluteFillObject, backgroundColor: '#0F0A1E' },
-  blob1: {
-    position: 'absolute', width: 280, height: 280, borderRadius: 140,
-    backgroundColor: '#E85D26', opacity: 0.25, top: -60, left: -80,
-  },
-  blob2: {
-    position: 'absolute', width: 220, height: 220, borderRadius: 110,
-    backgroundColor: '#7C3AED', opacity: 0.20, top: 120, right: -60,
-  },
-  blob3: {
-    position: 'absolute', width: 180, height: 180, borderRadius: 90,
-    backgroundColor: '#F59E0B', opacity: 0.15, bottom: 200, left: 20,
-  },
+  bg:   { ...StyleSheet.absoluteFillObject, backgroundColor: '#0F0A1E' },
+  blob1: { position: 'absolute', width: 280, height: 280, borderRadius: 140, backgroundColor: '#E85D26', opacity: 0.25, top: -60,   left: -80  },
+  blob2: { position: 'absolute', width: 220, height: 220, borderRadius: 110, backgroundColor: '#7C3AED', opacity: 0.20, top: 120,   right: -60 },
+  blob3: { position: 'absolute', width: 180, height: 180, borderRadius: 90,  backgroundColor: '#F59E0B', opacity: 0.15, bottom: 200, left: 20   },
   scroll: { flexGrow: 1, justifyContent: 'center', padding: 24, paddingBottom: 40 },
-  hero: { alignItems: 'center', marginBottom: 36 },
-  logoRing: {
-    width: 96, height: 96, borderRadius: 48,
-    backgroundColor: 'rgba(232,93,38,0.18)',
-    borderWidth: 2, borderColor: 'rgba(232,93,38,0.5)',
-    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
-  },
+
+  hero:      { alignItems: 'center', marginBottom: 36 },
+  logoRing:  { width: 96, height: 96, borderRadius: 48, backgroundColor: 'rgba(232,93,38,0.18)', borderWidth: 2, borderColor: 'rgba(232,93,38,0.5)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
   logoEmoji: { fontSize: 48 },
   heroTitle: { fontSize: 36, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 6 },
-  heroSub: { fontSize: 15, color: 'rgba(255,255,255,0.55)' },
-  card: {
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 28, padding: 28,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
-  },
+  heroSub:   { fontSize: 15, color: 'rgba(255,255,255,0.55)' },
+
+  card:      { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 28, padding: 28, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
   cardTitle: { fontSize: 24, fontWeight: '800', color: '#FFFFFF', marginBottom: 6, textAlign: 'center' },
-  cardSub: { fontSize: 14, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginBottom: 28 },
-  googleBtn: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
-    borderRadius: 16, paddingVertical: 16, paddingHorizontal: 20, marginBottom: 20,
-    shadowColor: '#E85D26', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
-  },
-  googleIconWrap: {
-    width: 32, height: 32, borderRadius: 16, backgroundColor: '#4285F4',
-    alignItems: 'center', justifyContent: 'center', marginRight: 14,
-  },
-  googleG: { color: '#fff', fontSize: 17, fontWeight: '900' },
-  googleBtnText: { flex: 1, fontSize: 16, fontWeight: '700', color: '#1A1208', textAlign: 'center', marginRight: 32 },
-  divRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
+  cardSub:   { fontSize: 14, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginBottom: 28 },
+
+  googleBtn:      { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, paddingVertical: 16, paddingHorizontal: 20, marginBottom: 20, shadowColor: '#E85D26', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 },
+  googleIconWrap: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#4285F4', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  googleG:        { color: '#fff', fontSize: 17, fontWeight: '900' },
+  googleBtnText:  { flex: 1, fontSize: 16, fontWeight: '700', color: '#1A1208', textAlign: 'center', marginRight: 32 },
+
+  divRow:  { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
   divLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.12)' },
   divText: { color: 'rgba(255,255,255,0.35)', fontSize: 13 },
-  emailBtn: {
-    paddingVertical: 15, borderRadius: 16, borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center', marginBottom: 24,
-  },
+
+  emailBtn:     { paddingVertical: 15, borderRadius: 16, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center', marginBottom: 24 },
   emailPressed: { backgroundColor: 'rgba(255,255,255,0.06)' },
   emailBtnText: { fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.8)' },
-  input: {
-    height: 52, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14,
-    paddingHorizontal: 16, color: '#FFFFFF', marginBottom: 16,
-  },
-  submitBtn: {
-    paddingVertical: 16, borderRadius: 16, alignItems: 'center', marginBottom: 18,
-    backgroundColor: '#E85D26',
-  },
+
+  backRow:      { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 20, alignSelf: 'flex-start' },
+  backIconWrap: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
+  backText:     { color: 'rgba(255,255,255,0.7)', fontSize: 14, fontWeight: '600' },
+
+  input:         { height: 52, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, paddingHorizontal: 16, color: '#FFFFFF', marginBottom: 16 },
+  submitBtn:     { paddingVertical: 16, borderRadius: 16, alignItems: 'center', marginBottom: 18, backgroundColor: '#E85D26' },
   submitBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  backRow: { marginBottom: 20 },
-  backText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
-  registerRow: { marginTop: 8, alignItems: 'center' },
+
+  registerRow:  { marginTop: 8, alignItems: 'center' },
   registerText: { color: 'rgba(255,255,255,0.6)', fontSize: 13 },
   registerLink: { color: '#FFFFFF', fontWeight: '800' },
-  footer: { marginTop: 28, color: 'rgba(255,255,255,0.4)', textAlign: 'center', fontSize: 12 },
+
+  footer:  { marginTop: 28, color: 'rgba(255,255,255,0.4)', textAlign: 'center', fontSize: 12 },
   pressed: { opacity: 0.85 },
 });

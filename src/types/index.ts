@@ -53,12 +53,22 @@ export type UIState = {
   accentColor: string;
 };
 
+export type RootState = {
+  auth: AuthState;
+  cart: CartState;
+  favorites: FavoritesState;
+  orders: OrdersState;
+  products: ProductsState;
+  ui: UIState;
+};
+
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   Main: undefined;
   Details: { product: Product };
   CategoryProducts: { category: string };
+  OrderSuccess: { orderId: string; total: number };
 };
 
 export type BottomTabParamList = {

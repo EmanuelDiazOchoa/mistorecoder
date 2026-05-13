@@ -4,6 +4,8 @@ import {
   Pressable, StatusBar, Animated,
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import {
   incrementQuantity, decrementQuantity,
@@ -13,18 +15,9 @@ import { addOrder } from '../redux/ordersSlice';
 import { getProductImage } from '../utils/productImages';
 import { useTheme } from '../hooks/useTheme';
 import ConfirmModal from '../components/ConfirmModal';
-import * as Notifications from 'expo-notifications';
-import { CartItem as CartItemType } from '../types';
+import { RootStackParamList, CartItem as CartItemType } from '../types';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
-
+// ── Tipos ──────────────────────────────────────────────────────────────────────
 interface CartItemProps {
   item: CartItemType;
   index: number;
@@ -34,8 +27,11 @@ interface CartItemProps {
   onRemove: () => void;
 }
 
+type ModalType = 'purchase' | 'clear' | null;
+
+// ── CartItem ───────────────────────────────────────────────────────────────────
 function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove }: CartItemProps) {
-  const anim = useRef(new Animated.Value(0)).current;
+  const anim  = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -47,7 +43,7 @@ function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove
 
   const handleRemove = () => {
     Animated.parallel([
-      Animated.timing(anim, { toValue: 0, duration: 250, useNativeDriver: true }),
+      Animated.timing(anim,  { toValue: 0, duration: 250, useNativeDriver: true }),
       Animated.spring(scale, { toValue: 0.85, useNativeDriver: true }),
     ]).start(() => onRemove());
   };
@@ -65,7 +61,9 @@ function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove
         <Text style={styles.itemName} numberOfLines={1}>
           {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
         </Text>
-        <Text style={[styles.itemPrice, { color: accentColor }]}>${(item.price * item.quantity).toFixed(2)}</Text>
+        <Text style={[styles.itemPrice, { color: accentColor }]}>
+          ${(item.price * item.quantity).toFixed(2)}
+        </Text>
         <View style={styles.qtyRow}>
           <Pressable onPress={onDecrement} style={styles.qtyBtn} hitSlop={8}>
             <Text style={styles.qtyBtnText}>−</Text>
@@ -83,15 +81,15 @@ function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove
   );
 }
 
-type ModalType = 'purchase' | 'clear' | null;
-
+// ── Screen ─────────────────────────────────────────────────────────────────────
 export default function CartScreen() {
-  const dispatch = useAppDispatch();
-  const theme = useTheme();
-  const cartItems = useAppSelector((state) => state.cart.items);
+  const dispatch    = useAppDispatch();
+  const navigation  = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const theme       = useTheme();
+  const cartItems   = useAppSelector((state) => state.cart.items);
   const accentColor = useAppSelector((state) => state.ui.accentColor ?? '#E85D26');
-  const total = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const totalUnits = cartItems.reduce((sum, i) => sum + i.quantity, 0);
+  const total       = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const totalUnits  = cartItems.reduce((sum, i) => sum + i.quantity, 0);
 
   const [modalType, setModalType] = useState<ModalType>(null);
   const footerAnim = useRef(new Animated.Value(0)).current;
@@ -105,17 +103,15 @@ export default function CartScreen() {
   const handlePurchase = () => setModalType('purchase');
 
   const confirmPurchase = async () => {
-    setModalType(null);
+    // 1. Guardar el pedido antes de limpiar el carrito
+    const orderId = Date.now().toString();
     dispatch(addOrder({ items: cartItems, total }));
     dispatch(clearCart());
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: '🎉 ¡Pedido confirmado!',
-        body: `Tu pedido por $${total.toFixed(2)} está siendo preparado.`,
-        sound: true,
-      },
-      trigger: null,
-    });
+    setModalType(null);
+
+    // 2. Navegar a la pantalla de éxito
+    // replace evita que el usuario vuelva atrás al carrito vacío
+    navigation.replace('OrderSuccess', { orderId, total });
   };
 
   return (
@@ -124,6 +120,7 @@ export default function CartScreen() {
       <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <View style={[styles.bgGlow, { backgroundColor: accentColor }]} />
 
+      {/* Modal confirmar pedido */}
       <ConfirmModal
         visible={modalType === 'purchase'}
         title="Confirmar pedido"
@@ -136,6 +133,7 @@ export default function CartScreen() {
         onCancel={() => setModalType(null)}
       />
 
+      {/* Modal vaciar carrito */}
       <ConfirmModal
         visible={modalType === 'clear'}
         title="Vaciar carrito"
@@ -149,6 +147,7 @@ export default function CartScreen() {
         onCancel={() => setModalType(null)}
       />
 
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Carrito</Text>
         {cartItems.length > 0 && (
@@ -212,17 +211,12 @@ export default function CartScreen() {
   );
 }
 
+// ── Styles ─────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  bgGlow: {
-    position: 'absolute', width: 300, height: 300, borderRadius: 150,
-    opacity: 0.05, top: -100, right: -80,
-  },
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24,
-  },
-  title: { fontSize: 32, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 },
+  bgGlow: { position: 'absolute', width: 300, height: 300, borderRadius: 150, opacity: 0.05, top: -100, right: -80 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24 },
+  title:    { fontSize: 32, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 },
   clearBtn: { fontSize: 14, fontWeight: '700', color: '#FF4D4D' },
   list: { paddingHorizontal: 20, paddingBottom: 200 },
   item: {
@@ -232,10 +226,10 @@ const styles = StyleSheet.create({
     borderRadius: 20, padding: 14, marginBottom: 12,
   },
   itemImage: { width: 64, height: 64, borderRadius: 14, marginRight: 14 },
-  itemInfo: { flex: 1 },
-  itemName: { fontSize: 15, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 },
+  itemInfo:  { flex: 1 },
+  itemName:  { fontSize: 15, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 },
   itemPrice: { fontSize: 15, fontWeight: '800', marginBottom: 8 },
-  qtyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  qtyRow:    { flexDirection: 'row', alignItems: 'center', gap: 12 },
   qtyBtn: {
     width: 28, height: 28, borderRadius: 8,
     backgroundColor: 'rgba(255,255,255,0.08)',
@@ -243,12 +237,12 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   qtyBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', lineHeight: 20 },
-  qtyValue: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', minWidth: 20, textAlign: 'center' },
-  removeBtn: { padding: 8 },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
+  qtyValue:   { color: '#FFFFFF', fontSize: 15, fontWeight: '800', minWidth: 20, textAlign: 'center' },
+  removeBtn:  { padding: 8 },
+  empty:      { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   emptyEmoji: { fontSize: 72, marginBottom: 16 },
   emptyTitle: { fontSize: 20, fontWeight: '800', color: '#FFFFFF', marginBottom: 8, textAlign: 'center' },
-  emptySub: { fontSize: 14, color: 'rgba(255,255,255,0.35)', textAlign: 'center', lineHeight: 20 },
+  emptySub:   { fontSize: 14, color: 'rgba(255,255,255,0.35)', textAlign: 'center', lineHeight: 20 },
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: 'rgba(15,10,30,0.95)',
@@ -256,18 +250,14 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
     padding: 24, paddingBottom: 96, overflow: 'hidden',
   },
-  footerGlow: {
-    position: 'absolute', width: 200, height: 100, borderRadius: 100,
-    opacity: 0.08, top: -20, left: 20,
-  },
-  totalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  footerGlow: { position: 'absolute', width: 200, height: 100, borderRadius: 100, opacity: 0.08, top: -20, left: 20 },
+  totalRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   totalLabel: { fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 2 },
-  totalAmount: { fontSize: 30, fontWeight: '900', color: '#FFFFFF' },
+  totalAmount:{ fontSize: 30, fontWeight: '900', color: '#FFFFFF' },
   buyBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingVertical: 16, paddingHorizontal: 24, borderRadius: 18,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5, shadowRadius: 14, elevation: 8,
+    shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.5, shadowRadius: 14, elevation: 8,
   },
   buyBtnText: { fontSize: 16, fontWeight: '800' },
 });

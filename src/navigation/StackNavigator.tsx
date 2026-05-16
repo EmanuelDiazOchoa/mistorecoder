@@ -26,7 +26,6 @@ const StackNavigator = ({ initialRoute = 'Login' }: { initialRoute?: keyof RootS
         component={OrderSuccessScreen}
         options={{
           headerShown: false,
-          // Evita que el usuario vuelva atrás con el gesto al carrito vacío
           gestureEnabled: false,
         }}
       />

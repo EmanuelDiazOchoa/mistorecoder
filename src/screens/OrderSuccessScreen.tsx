@@ -61,7 +61,6 @@ export default function OrderSuccessScreen({ route }: OrderSuccessScreenProps) {
   const navigation  = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const accentColor = useAppSelector((s) => s.ui.accentColor ?? '#E85D26');
 
-  // Animaciones
   const ringScale   = useRef(new Animated.Value(0)).current;
   const ringOpacity = useRef(new Animated.Value(0)).current;
   const checkScale  = useRef(new Animated.Value(0)).current;
@@ -102,7 +101,6 @@ export default function OrderSuccessScreen({ route }: OrderSuccessScreenProps) {
   const glowSize    = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 340] });
   const orderNumber = `#${orderId.slice(-5).toUpperCase()}`;
 
-  // ── Navega directo a la tab Orders dentro de Main ──────────────────────────
   const goToOrders = () => {
     navigation.dispatch(
       CommonActions.reset({
@@ -115,10 +113,10 @@ export default function OrderSuccessScreen({ route }: OrderSuccessScreenProps) {
                 { name: 'Home' },
                 { name: 'Categories' },
                 { name: 'Cart' },
-                { name: 'Orders' },   // ← tab activa
+                { name: 'Orders' },   
                 { name: 'Profile' },
               ],
-              index: 3, // Orders es el índice 3
+              index: 3, 
             },
           },
         ],
@@ -126,7 +124,6 @@ export default function OrderSuccessScreen({ route }: OrderSuccessScreenProps) {
     );
   };
 
-  // ── Navega a Home ──────────────────────────────────────────────────────────
   const goToHome = () => {
     navigation.dispatch(
       CommonActions.reset({
@@ -140,14 +137,12 @@ export default function OrderSuccessScreen({ route }: OrderSuccessScreenProps) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* Glow de fondo animado */}
       <Animated.View style={[
         styles.bgGlow,
         { backgroundColor: accentColor, width: glowSize, height: glowSize, borderRadius: 999, opacity: glowOpacity },
       ]} />
       <View style={[styles.bgGlow2, { backgroundColor: accentColor }]} />
 
-      {/* ── Ring + Checkmark ── */}
       <Animated.View style={[
         styles.ringWrap,
         { transform: [{ scale: Animated.multiply(ringScale, pulseAnim) }], opacity: ringOpacity },
@@ -160,7 +155,6 @@ export default function OrderSuccessScreen({ route }: OrderSuccessScreenProps) {
         </View>
       </Animated.View>
 
-      {/* ── Título y card resumen ── */}
       <Animated.View style={[styles.content, {
         opacity: contentAnim,
         transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
@@ -190,7 +184,6 @@ export default function OrderSuccessScreen({ route }: OrderSuccessScreenProps) {
         </View>
       </Animated.View>
 
-      {/* ── Steps ── */}
       <Animated.View style={[styles.stepsWrap, {
         opacity: stepsAnim,
         transform: [{ translateY: stepsAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
@@ -230,12 +223,10 @@ export default function OrderSuccessScreen({ route }: OrderSuccessScreenProps) {
         })}
       </Animated.View>
 
-      {/* ── Botones ── */}
       <Animated.View style={[styles.btnWrap, {
         opacity: stepsAnim,
         transform: [{ translateY: stepsAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
       }]}>
-        {/* Primario: va directo a la tab Orders */}
         <Pressable
           style={({ pressed }) => [
             styles.btnPrimary,
@@ -248,7 +239,6 @@ export default function OrderSuccessScreen({ route }: OrderSuccessScreenProps) {
           <Text style={styles.btnPrimaryText}>Ver mis pedidos</Text>
         </Pressable>
 
-        {/* Secundario: vuelve a Home */}
         <Pressable
           style={({ pressed }) => [styles.btnSecondary, pressed && { opacity: 0.7 }]}
           onPress={goToHome}

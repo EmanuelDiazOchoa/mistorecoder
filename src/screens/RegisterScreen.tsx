@@ -123,7 +123,6 @@ export default function RegisterScreen() {
         style={{ opacity: fadeAnim }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
         <Animated.View style={[styles.hero, { transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.logoRing}>
             <Text style={styles.logoEmoji}>🍞</Text>
@@ -132,11 +131,9 @@ export default function RegisterScreen() {
           <Text style={styles.heroSub}>Creá tu cuenta gratis</Text>
         </Animated.View>
 
-        {/* Card */}
         <Animated.View style={[styles.card, { transform: [{ translateY: slideAnim }] }]}>
           <Text style={styles.cardTitle}>Crear cuenta</Text>
 
-          {/* Google */}
           <Pressable
             style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed]}
             onPress={handleGoogleRegister}
@@ -157,7 +154,6 @@ export default function RegisterScreen() {
             <View style={styles.divLine} />
           </View>
 
-          {/* Inputs */}
           <TextInput
             style={styles.input}
             placeholder="Correo electrónico"

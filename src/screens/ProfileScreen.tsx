@@ -77,7 +77,6 @@ export default function ProfileScreen() {
           setLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
         }
       } catch {
-        // Location no disponible en este dispositivo/emulador
       }
     })();
   }, []);
@@ -108,7 +107,6 @@ export default function ProfileScreen() {
       <View style={styles.bgGlow2} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* ── Header / Avatar ── */}
         <Animated.View style={[styles.profileHeader, {
           opacity: headerAnim,
           transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
@@ -133,7 +131,6 @@ export default function ProfileScreen() {
           </View>
         </Animated.View>
 
-        {/* ── Stats ── */}
         <Animated.View style={[styles.statsRow, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
@@ -143,7 +140,6 @@ export default function ProfileScreen() {
           <StatCard label="Favoritos"  value={favorites.length} icon="favorite"       color="#FF4D6D"     delay={400} />
         </Animated.View>
 
-        {/* ── Favorites list ── */}
         {favorites.length > 0 && (
           <Animated.View style={[styles.section, {
             opacity: contentAnim,
@@ -160,7 +156,6 @@ export default function ProfileScreen() {
           </Animated.View>
         )}
 
-        {/* ── Accent color picker + version ── */}
         <Animated.View style={[styles.section, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],

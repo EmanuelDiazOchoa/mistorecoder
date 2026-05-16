@@ -17,7 +17,6 @@ import { useTheme } from '../hooks/useTheme';
 import ConfirmModal from '../components/ConfirmModal';
 import { RootStackParamList, CartItem as CartItemType } from '../types';
 
-// ── Tipos ──────────────────────────────────────────────────────────────────────
 interface CartItemProps {
   item: CartItemType;
   index: number;
@@ -29,7 +28,6 @@ interface CartItemProps {
 
 type ModalType = 'purchase' | 'clear' | null;
 
-// ── CartItem ───────────────────────────────────────────────────────────────────
 function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove }: CartItemProps) {
   const anim  = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
@@ -81,7 +79,6 @@ function CartItem({ item, index, accentColor, onIncrement, onDecrement, onRemove
   );
 }
 
-// ── Screen ─────────────────────────────────────────────────────────────────────
 export default function CartScreen() {
   const dispatch    = useAppDispatch();
   const navigation  = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -103,14 +100,11 @@ export default function CartScreen() {
   const handlePurchase = () => setModalType('purchase');
 
   const confirmPurchase = async () => {
-    // 1. Guardar el pedido antes de limpiar el carrito
     const orderId = Date.now().toString();
     dispatch(addOrder({ items: cartItems, total }));
     dispatch(clearCart());
     setModalType(null);
 
-    // 2. Navegar a la pantalla de éxito
-    // replace evita que el usuario vuelva atrás al carrito vacío
     navigation.replace('OrderSuccess', { orderId, total });
   };
 
@@ -120,7 +114,6 @@ export default function CartScreen() {
       <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bgTint, pointerEvents: 'none' }]} />
       <View style={[styles.bgGlow, { backgroundColor: accentColor }]} />
 
-      {/* Modal confirmar pedido */}
       <ConfirmModal
         visible={modalType === 'purchase'}
         title="Confirmar pedido"
@@ -133,7 +126,6 @@ export default function CartScreen() {
         onCancel={() => setModalType(null)}
       />
 
-      {/* Modal vaciar carrito */}
       <ConfirmModal
         visible={modalType === 'clear'}
         title="Vaciar carrito"
@@ -147,7 +139,6 @@ export default function CartScreen() {
         onCancel={() => setModalType(null)}
       />
 
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Carrito</Text>
         {cartItems.length > 0 && (
@@ -211,7 +202,6 @@ export default function CartScreen() {
   );
 }
 
-// ── Styles ─────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1 },
   bgGlow: { position: 'absolute', width: 300, height: 300, borderRadius: 150, opacity: 0.05, top: -100, right: -80 },

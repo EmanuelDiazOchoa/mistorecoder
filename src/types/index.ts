@@ -8,9 +8,7 @@ export type Product = {
   [key: string]: any;
 };
 
-export type CartItem = Product & {
-  quantity: number;
-};
+export type CartItem = Product & { quantity: number };
 
 export type Order = {
   id: string;
@@ -20,61 +18,37 @@ export type Order = {
   status: 'completed' | 'pending' | string;
 };
 
-export type User = {
-  email: string;
-  uid: string;
-};
-
-export type AuthState = {
-  user: User | null;
-};
-
-export type CartState = {
-  items: CartItem[];
-  loaded: boolean;
-};
-
-export type FavoritesState = {
-  items: Product[];
-};
-
-export type OrdersState = {
-  orders: Order[];
-};
-
-export type ProductsState = {
-  products: Product[];
-  loading: boolean;
-  error: string | null;
-};
-
-export type UIState = {
-  isDark: boolean;
-  accentColor: string;
-};
+export type User     = { email: string; uid: string };
+export type AuthState = { user: User | null };
+export type CartState = { items: CartItem[]; loaded: boolean };
+export type FavoritesState = { items: Product[] };
+export type OrdersState    = { orders: Order[] };
+export type ProductsState  = { products: Product[]; loading: boolean; error: string | null };
+export type UIState        = { isDark: boolean; accentColor: string };
 
 export type RootState = {
-  auth: AuthState;
-  cart: CartState;
+  auth:      AuthState;
+  cart:      CartState;
   favorites: FavoritesState;
-  orders: OrdersState;
-  products: ProductsState;
-  ui: UIState;
+  orders:    OrdersState;
+  products:  ProductsState;
+  ui:        UIState;
+  ratings:   import('../redux/ratingsSlice').RatingsState;
 };
 
 export type RootStackParamList = {
-  Login: undefined;
-  Register: undefined;
-  Main: undefined;
-  Details: { product: Product };
+  Login:            undefined;
+  Register:         undefined;
+  Main:             undefined;
+  Details:          { product: Product };
   CategoryProducts: { category: string };
-  OrderSuccess: { orderId: string; total: number };
+  OrderSuccess:     { orderId: string; total: number };
 };
 
 export type BottomTabParamList = {
-  Home: undefined;
+  Home:       undefined;
   Categories: undefined;
-  Cart: undefined;
-  Orders: undefined;
-  Profile: undefined;
+  Cart:       undefined;
+  Orders:     undefined;
+  Profile:    undefined;
 };

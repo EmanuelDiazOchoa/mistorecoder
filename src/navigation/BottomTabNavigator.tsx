@@ -1,15 +1,15 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Pressable } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { TabNavigationState, ParamListBase } from '@react-navigation/native';
 import { useAppSelector } from '../hooks/useRedux';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
-import { NavigationState, TabNavigationState, ParamListBase } from '@react-navigation/native';
 
-import HomeScreen from '../screens/HomeScreen';
+import HomeScreen       from '../screens/HomeScreen';
 import CategoriesScreen from '../screens/CategoriesScreen';
-import CartScreen from '../screens/CartScreen';
-import OrdersScreen from '../screens/OrdersScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import CartScreen       from '../screens/CartScreen';
+import OrdersScreen     from '../screens/OrdersScreen';
+import ProfileScreen    from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -27,9 +27,9 @@ function IconHome({ color, size = 24 }: IconProps) {
 function IconGrid({ color, size = 24 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Rect x="3" y="3" width="7" height="7" rx="2" stroke={color} strokeWidth={1.8} fill="none" />
-      <Rect x="14" y="3" width="7" height="7" rx="2" stroke={color} strokeWidth={1.8} fill="none" />
-      <Rect x="3" y="14" width="7" height="7" rx="2" stroke={color} strokeWidth={1.8} fill="none" />
+      <Rect x="3" y="3"   width="7" height="7" rx="2" stroke={color} strokeWidth={1.8} fill="none" />
+      <Rect x="14" y="3"  width="7" height="7" rx="2" stroke={color} strokeWidth={1.8} fill="none" />
+      <Rect x="3" y="14"  width="7" height="7" rx="2" stroke={color} strokeWidth={1.8} fill="none" />
       <Rect x="14" y="14" width="7" height="7" rx="2" stroke={color} strokeWidth={1.8} fill="none" />
     </Svg>
   );
@@ -52,7 +52,7 @@ function IconReceipt({ color, size = 24 }: IconProps) {
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d="M4 2H20V22L17 20L14 22L12 20L10 22L7 20L4 22V2Z"
         stroke={color} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
-      <Path d="M8 8H16" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Path d="M8 8H16"  stroke={color} strokeWidth={1.8} strokeLinecap="round" />
       <Path d="M8 12H16" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
       <Path d="M8 16H12" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
     </Svg>
@@ -78,29 +78,29 @@ const TABS = [
 ];
 
 interface TabButtonProps {
-  isFocused: boolean;
-  label: string;
-  Icon: React.FC<IconProps>;
-  isCart: boolean;
-  cartCount: number;
-  onPress: () => void;
-  accentColor: string;
+  isFocused:    boolean;
+  label:        string;
+  Icon:         React.FC<IconProps>;
+  isCart:       boolean;
+  cartCount:    number;
+  onPress:      () => void;
+  accentColor:  string;
 }
 
 function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress, accentColor }: TabButtonProps) {
-  const scale = useRef(new Animated.Value(1)).current;
-  const glow  = useRef(new Animated.Value(0)).current;
+  const scale  = useRef(new Animated.Value(1)).current;
+  const glow   = useRef(new Animated.Value(0)).current;
   const labelO = useRef(new Animated.Value(isFocused ? 1 : 0)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(scale, { toValue: isFocused ? 1.12 : 1, tension: 90, friction: 7, useNativeDriver: true }),
-      Animated.timing(glow,  { toValue: isFocused ? 1 : 0, duration: 220, useNativeDriver: false }),
-      Animated.timing(labelO, { toValue: isFocused ? 1 : 0, duration: 180, useNativeDriver: true }),
+      Animated.spring(scale,  { toValue: isFocused ? 1.12 : 1, tension: 90, friction: 7,   useNativeDriver: true }),
+      Animated.timing(glow,   { toValue: isFocused ? 1 : 0,    duration: 220,               useNativeDriver: false }),
+      Animated.timing(labelO, { toValue: isFocused ? 1 : 0,    duration: 180,               useNativeDriver: true }),
     ]).start();
   }, [isFocused]);
 
-  const color = isFocused ? accentColor : 'rgba(255,255,255,0.3)';
+  const color       = isFocused ? accentColor : 'rgba(255,255,255,0.3)';
   const pillWidth   = glow.interpolate({ inputRange: [0, 1], outputRange: [0, 48] });
   const pillOpacity = glow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.18] });
 
@@ -120,13 +120,8 @@ function TabButton({ isFocused, label, Icon, isCart, cartCount, onPress, accentC
   );
 }
 
-interface CustomTabBarProps {
-  state: TabNavigationState<ParamListBase>;
-  navigation: any;
-}
-
-function CustomTabBar({ state, navigation }: CustomTabBarProps) {
-  const cartCount  = useAppSelector((s) => s.cart.items.length);
+function CustomTabBar({ state, navigation }: { state: TabNavigationState<ParamListBase>; navigation: any }) {
+  const cartCount   = useAppSelector((s) => s.cart.items.length);
   const accentColor = useAppSelector((s) => s.ui.accentColor ?? '#E85D26');
 
   return (
@@ -134,7 +129,7 @@ function CustomTabBar({ state, navigation }: CustomTabBarProps) {
       <View style={styles.barInner}>
         <View style={styles.topLine} />
         {state.routes.map((route, index: number) => {
-          const tab      = TABS.find((t) => t.name === route.name);
+          const tab       = TABS.find((t) => t.name === route.name);
           const isFocused = state.index === index;
           return (
             <TabButton
@@ -156,45 +151,24 @@ function CustomTabBar({ state, navigation }: CustomTabBarProps) {
 
 export default function BottomTabNavigator() {
   return (
-    <Tab.Navigator
-      tabBar={(props) => <CustomTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
-    >
-      <Tab.Screen name="Home"       component={HomeScreen}       />
+    <Tab.Navigator tabBar={(props) => <CustomTabBar {...props} />} screenOptions={{ headerShown: false }}>
+      <Tab.Screen name="Home"       component={HomeScreen} />
       <Tab.Screen name="Categories" component={CategoriesScreen} />
-      <Tab.Screen name="Cart"       component={CartScreen}       />
-      <Tab.Screen name="Orders"     component={OrdersScreen}     />
-      <Tab.Screen name="Profile"    component={ProfileScreen}    />
+      <Tab.Screen name="Cart"       component={CartScreen} />
+      <Tab.Screen name="Orders"     component={OrdersScreen} />
+      <Tab.Screen name="Profile"    component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
-  barOuter: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    paddingBottom: 12, paddingHorizontal: 12,
-    backgroundColor: 'transparent',
-  },
-  barInner: {
-    flexDirection: 'row', backgroundColor: '#111018',
-    borderRadius: 26, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
-    paddingVertical: 10, paddingHorizontal: 6, overflow: 'hidden',
-    shadowColor: '#000', shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.5, shadowRadius: 24, elevation: 24,
-  },
-  topLine: {
-    position: 'absolute', top: 0, left: 32, right: 32, height: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 1,
-  },
-  tabBtn:   { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 4, gap: 3 },
-  iconWrap: { position: 'relative', alignItems: 'center', justifyContent: 'center', width: 44, height: 32 },
+  barOuter:   { position: 'absolute', bottom: 0, left: 0, right: 0, paddingBottom: 12, paddingHorizontal: 12, backgroundColor: 'transparent' },
+  barInner:   { flexDirection: 'row', backgroundColor: '#111018', borderRadius: 26, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', paddingVertical: 10, paddingHorizontal: 6, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.5, shadowRadius: 24, elevation: 24 },
+  topLine:    { position: 'absolute', top: 0, left: 32, right: 32, height: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 1 },
+  tabBtn:     { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 4, gap: 3 },
+  iconWrap:   { position: 'relative', alignItems: 'center', justifyContent: 'center', width: 44, height: 32 },
   activePill: { position: 'absolute', height: 32, borderRadius: 16 },
-  tabLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.2 },
-  badge: {
-    position: 'absolute', top: -3, right: -2,
-    minWidth: 15, height: 15, borderRadius: 8,
-    alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 3, borderWidth: 1.5, borderColor: '#111018',
-  },
-  badgeText: { color: '#fff', fontSize: 8, fontWeight: '900' },
+  tabLabel:   { fontSize: 10, fontWeight: '700', letterSpacing: 0.2 },
+  badge:      { position: 'absolute', top: -3, right: -2, minWidth: 15, height: 15, borderRadius: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3, borderWidth: 1.5, borderColor: '#111018' },
+  badgeText:  { color: '#fff', fontSize: 8, fontWeight: '900' },
 });

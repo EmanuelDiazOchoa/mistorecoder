@@ -3,7 +3,6 @@ import { View, ActivityIndicator } from 'react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
 import * as WebBrowser from 'expo-web-browser';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { store } from './src/redux/store';
@@ -14,6 +13,7 @@ import { loadOrders } from './src/redux/ordersSlice';
 import { setUser } from './src/features/auth/authSlice';
 import { getSession } from './src/service/sessionStorage';
 import { loadFavorites } from './src/redux/favoritesSlice';
+import { loadRatings } from './src/redux/ratingsSlice';
 import { useAppDispatch } from './src/hooks/useRedux';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -28,20 +28,21 @@ function Root() {
 
   useEffect(() => {
     (async () => {
-      await Notifications.requestPermissionsAsync();
-
-      const [darkPref, ordersData, session, favoritesData, accentPref] = await Promise.all([
-        AsyncStorage.getItem('darkMode'),
-        AsyncStorage.getItem('orders'),
-        getSession(),
-        AsyncStorage.getItem('favorites'),
-        AsyncStorage.getItem('accentColor'),
-      ]);
+      const [darkPref, ordersData, session, favoritesData, accentPref, ratingsData] =
+        await Promise.all([
+          AsyncStorage.getItem('darkMode'),
+          AsyncStorage.getItem('orders'),
+          getSession(),
+          AsyncStorage.getItem('favorites'),
+          AsyncStorage.getItem('accentColor'),
+          AsyncStorage.getItem('ratings'),
+        ]);
 
       dispatch(loadCartFromStorage());
       if (darkPref !== null) dispatch(setDarkMode(JSON.parse(darkPref)));
-      if (ordersData) dispatch(loadOrders(JSON.parse(ordersData)));
-      if (favoritesData) dispatch(loadFavorites(JSON.parse(favoritesData)));
+      if (ordersData)        dispatch(loadOrders(JSON.parse(ordersData)));
+      if (favoritesData)     dispatch(loadFavorites(JSON.parse(favoritesData)));
+      if (ratingsData)       dispatch(loadRatings(JSON.parse(ratingsData)));
       if (accentPref && ACCENT_COLORS.includes(accentPref)) {
         dispatch(setAccentColor(accentPref));
       }

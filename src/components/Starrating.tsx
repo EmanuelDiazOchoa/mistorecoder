@@ -17,7 +17,6 @@ function StarIcon({ filled, color, size = 16 }: StarIconProps) {
   );
 }
 
-// ── Display estático (usado en la lista de detalles) ──────────────────────────
 export function StarDisplay({ rating, count, color, size = 14 }: {
   rating: number; count: number; color: string; size?: number;
 }) {
@@ -32,7 +31,6 @@ export function StarDisplay({ rating, count, color, size = 14 }: {
   );
 }
 
-// ── Widget interactivo ────────────────────────────────────────────────────────
 interface StarRatingProps {
   productId:   string;
   rating:      number;

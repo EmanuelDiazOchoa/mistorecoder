@@ -13,13 +13,10 @@ import { useTheme } from '../hooks/useTheme';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, Product } from '../types';
 
-// ── Tipos ──────────────────────────────────────────────────────────────────────
 interface HomeScreenProps {
   navigation: NativeStackNavigationProp<RootStackParamList>;
 }
 
-// ── Card animada con entrada staggered ─────────────────────────────────────────
-// Cada card tiene su propio spring independiente para un efecto más natural
 function AnimatedCard({ children, index }: { children: ReactNode; index: number }) {
   const translateY = useRef(new Animated.Value(40)).current;
   const opacity    = useRef(new Animated.Value(0)).current;
@@ -50,7 +47,6 @@ function AnimatedCard({ children, index }: { children: ReactNode; index: number 
   );
 }
 
-// ── Filtros ────────────────────────────────────────────────────────────────────
 const FILTERS = [
   { label: 'Todo',       key: 'Todo'       },
   { label: 'Pan',        key: 'pan'        },
@@ -69,7 +65,6 @@ function SkeletonList() {
   );
 }
 
-// ── Screen ─────────────────────────────────────────────────────────────────────
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const dispatch = useAppDispatch();
   const { products, loading } = useAppSelector((state) => state.products);
@@ -113,10 +108,8 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const username    = user?.email?.split('@')[0] ?? 'visitante';
   const activeLabel = FILTERS.find((f) => f.key === activeFilter)?.label ?? activeFilter;
 
-  // ── List Header ───────────────────────────────────────────────────────────────
   const ListHeader = (
     <View>
-      {/* Hero */}
       <Animated.View style={[styles.header, {
         opacity: headerAnim,
         transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
@@ -134,7 +127,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           </View>
         </View>
 
-        {/* Banner promo */}
         <View style={[styles.promoBanner, {
           backgroundColor: `${theme.primary}18`,
           borderColor:     `${theme.primary}30`,
@@ -149,7 +141,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
       </Animated.View>
 
-      {/* SearchBar */}
       <Animated.View style={[styles.searchWrap, {
         opacity: searchAnim,
         transform: [{ translateY: searchAnim.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
@@ -157,7 +148,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <SearchBar value={search} onChangeText={setSearch} />
       </Animated.View>
 
-      {/* Filtros */}
       <Animated.View style={{ opacity: searchAnim }}>
         <ScrollView
           horizontal
@@ -184,7 +174,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </ScrollView>
       </Animated.View>
 
-      {/* Título sección */}
       <Text style={styles.sectionTitle}>
         {search
           ? `Resultados para "${search}"`
@@ -205,7 +194,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         data={filtered}
         keyExtractor={(item) => item.id?.toString()}
         renderItem={({ item, index }) => (
-          // Cada card tiene animación de entrada independiente con spring
           <AnimatedCard index={index}>
             <ProductCard
               product={item}
@@ -224,7 +212,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         }
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        // Mejora el rendimiento del scroll
         removeClippedSubviews
         initialNumToRender={8}
         maxToRenderPerBatch={6}
@@ -234,7 +221,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   );
 }
 
-// ── Styles ─────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1 },
 

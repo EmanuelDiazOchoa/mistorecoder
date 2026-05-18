@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD033 -->
+
 # 🍞 Roma Store
 
 > Aplicación móvil de ecommerce para una panadería artesanal — Portfolio project
@@ -19,12 +21,12 @@
 <div align="center">
 
 | Login | Home | Detalle |
-|:-----:|:----:|:-------:|
-| <img src="assets/screenshots/login.webp" width="180"/> | <img src="assets/screenshots/home.webp" width="180"/> | <img src="assets/screenshots/detail.webp" width="180"/> |
+| :---: | :--: | :-----: |
+| ![Login](assets/screenshots/login.webp) | ![Home](assets/screenshots/home.webp) | ![Detalle](assets/screenshots/detail.webp) |
 
 | Carrito | Pedido confirmado | Perfil |
-|:-------:|:-----------------:|:------:|
-| <img src="assets/screenshots/cart.webp" width="180"/> | <img src="assets/screenshots/success.webp" width="180"/> | <img src="assets/screenshots/profile.webp" width="180"/> |
+| :------: | :----------------: | :----: |
+| ![Carrito](assets/screenshots/cart.webp) | ![Pedido confirmado](assets/screenshots/success.webp) | ![Perfil](assets/screenshots/profile.webp) |
 
 </div>
 
@@ -32,41 +34,48 @@
 
 ## ✨ Funcionalidades
 
-### Autenticación
+### 🔐 Autenticación
+
 - Login y registro con **Firebase Auth** (email + contraseña)
 - **Google OAuth** nativo vía `@react-native-google-signin`
 - Sesión persistente con **SQLite** — no requiere login en cada apertura
 
-### Catálogo
+### 🛍️ Catálogo
+
 - Productos en tiempo real desde **Firebase Realtime Database**
 - Filtros por categoría con scroll horizontal animado
 - Búsqueda en tiempo real
 - **Skeleton loaders** durante la carga
-- **Sistema de valoración** de productos con estrellas (persiste entre sesiones)
+- Sistema de valoración con estrellas (persistencia entre sesiones)
 
-### Carrito y pedidos
-- Carrito con control de cantidades, persistido en **AsyncStorage**
+### 🛒 Carrito y pedidos
+
+- Carrito con control de cantidades persistido en **AsyncStorage**
 - Modal de confirmación animado (bottom sheet)
-- **Pantalla de éxito** animada con número de pedido, total y tiempo estimado
-- Simulador de estados del pedido (Confirmado → Preparando → En camino)
+- Pantalla de éxito animada con número de pedido, total y tiempo estimado
+- Simulador de estados del pedido:
+  - Confirmado
+  - Preparando
+  - En camino
 - Historial de pedidos
 
-### UI/UX
+### 🎨 UI/UX
+
 - Diseño **dark mode premium** con sistema de tema dinámico
-- **6 colores de acento** personalizables — toda la UI reacciona en tiempo real
-- Tab bar custom con **SVG icons** y animaciones de escala
-- Animaciones con **React Native Animated API** (spring, stagger, sequence)
-- Toast animado para feedback de acciones
-- Botón de favorito animado (♥) con persistencia
-- Iconografía consistente con **SVG** (sin dependencias de icon fonts)
-- Ubicación del usuario en tiempo real (pantalla de perfil)
+- 6 colores de acento personalizables
+- Tab bar custom con SVG icons y animaciones
+- Animaciones con **React Native Animated API**
+- Toast animado para feedback visual
+- Botón de favorito animado con persistencia
+- Iconografía SVG sin dependencias de icon fonts
+- Ubicación del usuario en tiempo real
 
 ---
 
 ## 🧰 Stack tecnológico
 
 | Tecnología | Versión | Uso |
-|---|---|---|
+| --- | --- | --- |
 | React Native | 0.83.6 | Base de la app |
 | Expo SDK | 55 | Toolchain y módulos nativos |
 | TypeScript | 5.5 | Tipado estático |
@@ -85,19 +94,19 @@
 
 ## 🏗️ Arquitectura
 
-```
+```txt
 src/
-├── components/          # Componentes reutilizables
-│   ├── ConfirmModal.tsx  # Bottom sheet animado
-│   ├── ProductCard.tsx   # Card con animaciones
-│   ├── StarRating.tsx    # Sistema de valoración
-│   ├── SkeletonCard.tsx  # Loader placeholder
-│   └── Toast.tsx         # Feedback animado
+├── components/
+│   ├── ConfirmModal.tsx
+│   ├── ProductCard.tsx
+│   ├── StarRating.tsx
+│   ├── SkeletonCard.tsx
+│   └── Toast.tsx
 ├── features/
-│   └── auth/authSlice.ts # Slice de autenticación
+│   └── auth/authSlice.ts
 ├── hooks/
-│   ├── useRedux.ts       # Typed hooks de Redux
-│   └── useTheme.ts       # Hook de tema dinámico
+│   ├── useRedux.ts
+│   └── useTheme.ts
 ├── navigation/
 │   ├── StackNavigator.tsx
 │   └── BottomTabNavigator.tsx
@@ -107,8 +116,8 @@ src/
 │   ├── favoritesSlice.ts
 │   ├── ordersSlice.ts
 │   ├── productsSlice.ts
-│   ├── ratingsSlice.ts   # Sistema de valoraciones
-│   └── uiSlice.ts        # Tema + accentColor
+│   ├── ratingsSlice.ts
+│   └── uiSlice.ts
 ├── screens/
 │   ├── LoginScreen.tsx
 │   ├── RegisterScreen.tsx
@@ -121,10 +130,10 @@ src/
 │   ├── OrdersScreen.tsx
 │   └── ProfileScreen.tsx
 ├── service/
-│   ├── firebase.ts       # Inicialización Firebase
-│   └── sessionStorage.ts # Sesión SQLite
-├── theme/index.ts        # getTheme(), palette, shadows
-├── types/index.ts        # Tipos globales
+│   ├── firebase.ts
+│   └── sessionStorage.ts
+├── theme/index.ts
+├── types/index.ts
 └── utils/productImages.ts
 ```
 
@@ -133,26 +142,28 @@ src/
 ## ⚙️ Instalación
 
 ### Requisitos
+
 - Node.js 18+
 - Expo CLI — `npm install -g expo-cli`
 - EAS CLI — `npm install -g eas-cli`
-- Cuenta en [Firebase](https://firebase.google.com)
+- Cuenta en Firebase
 
 ### Setup
 
 ```bash
-# 1. Clonar
+# 1. Clonar repositorio
 git clone https://github.com/EmanuelDiazOchoa/mistorecoder
+
+# 2. Entrar al proyecto
 cd mistorecoder
 
-# 2. Instalar dependencias
+# 3. Instalar dependencias
 npm install
 
-# 3. Configurar variables de entorno
+# 4. Configurar variables de entorno
 cp .env.example .env
-# Completar con tus credenciales de Firebase
 
-# 4. Iniciar
+# 5. Iniciar proyecto
 npx expo start --dev-client
 ```
 
@@ -171,10 +182,10 @@ EXPO_PUBLIC_FIREBASE_APP_ID=
 ### Build Android
 
 ```bash
-# Development build (APK para testing)
+# APK de desarrollo
 eas build --profile development --platform android
 
-# Production
+# Producción
 eas build --profile production --platform android
 ```
 
@@ -196,9 +207,12 @@ eas build --profile production --platform android
 }
 ```
 
-**Categorías:** `pan` · `torta` · `galletitas` · `donas` · `budin` · `chocolate`
+### Categorías
 
-**Reglas recomendadas:**
+`pan` · `torta` · `galletitas` · `donas` · `budin` · `chocolate`
+
+### Reglas recomendadas
+
 ```json
 {
   "rules": {
@@ -212,10 +226,17 @@ eas build --profile production --platform android
 
 ## 🎨 Sistema de temas
 
-El usuario elige entre 6 colores de acento desde Perfil. Toda la UI reacciona en tiempo real: botones, tab bar, badges, glows y chips.
+El usuario puede elegir entre 6 colores de acento desde la pantalla de perfil. Toda la UI reacciona en tiempo real: botones, badges, glows, chips y tab bar.
 
 ```ts
-const ACCENT_COLORS = ['#E85D26', '#7C3AED', '#EC4899', '#10B981', '#F59E0B', '#3B82F6'];
+const ACCENT_COLORS = [
+  '#E85D26',
+  '#7C3AED',
+  '#EC4899',
+  '#10B981',
+  '#F59E0B',
+  '#3B82F6'
+];
 ```
 
 `isLightColor()` garantiza legibilidad del texto sobre cualquier color de acento.
@@ -224,21 +245,22 @@ const ACCENT_COLORS = ['#E85D26', '#7C3AED', '#EC4899', '#10B981', '#F59E0B', '#
 
 ## 🗺️ Roadmap
 
-- [x] MVP — auth, catálogo, carrito, favoritos, pedidos
-- [x] UI premium — dark mode, animaciones, tema dinámico, SVG icons
-- [x] Sistema de valoraciones con persistencia
+- [x] MVP — auth, catálogo, carrito, favoritos y pedidos
+- [x] UI premium — dark mode, animaciones y SVG icons
+- [x] Sistema de valoraciones persistente
 - [x] Pantalla de éxito animada con tracking de pedido
-- [ ] Pagos — Mercado Pago Checkout Pro (sandbox)
-- [ ] Backend — estados de pedido en Firebase, notificaciones push
+- [ ] Integración Mercado Pago Checkout Pro (sandbox)
+- [ ] Backend de estados de pedido en Firebase
+- [ ] Notificaciones push
 
 ---
 
 ## 👤 Autor
 
-**Emanuel Diaz Ochoa**
+**Emanuel Diaz Ochoa*
 
-[![GitHub](https://img.shields.io/badge/GitHub-EmanuelDiazOchoa-181717?style=flat-square&logo=github)](https://github.com/EmanuelDiazOchoa)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Conectar-0A66C2?style=flat-square&logo=linkedin)](https://linkedin.com/in/emanuel-diaz-ochoa)
+- GitHub: <https://github.com/EmanuelDiazOchoa>
+- LinkedIn: <https://linkedin.com/in/emanuel-diaz-ochoa>
 
 ---
 

@@ -190,7 +190,6 @@ export default function ProfileScreen() {
           </View>
         </Animated.View>
 
-        {/* ── Logout ── */}
         <Animated.View style={{ opacity: contentAnim }}>
           <Pressable
             style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}

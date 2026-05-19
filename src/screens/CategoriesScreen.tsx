@@ -45,7 +45,7 @@ function CategoryCard({ item, index, onPress }: { item: any; index: number; onPr
             <Text style={styles.emoji}>{item.emoji}</Text>
           </View>
           <Text style={[styles.label, { color: '#FFFFFF' }]}>{item.label}</Text>
-          <Text style={[styles.sublabel, { color: colors.primary }]}>Ver →</Text>
+          <Text style={[styles.sublabel, { color: colors.primary }]}>Ver</Text>
         </View>
       </Pressable>
     </Animated.View>

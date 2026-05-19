@@ -1,54 +1,44 @@
 {
   "expo": {
     "name": "Roma App Store",
-    "slug": "roma-app-store",
+    "slug": "mistore",
     "version": "1.0.0",
     "scheme": "romaappstore",
-
     "orientation": "portrait",
-
     "icon": "./assets/icon.png",
-
     "userInterfaceStyle": "dark",
-
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0B0B0F"
     },
-
     "ios": {
       "supportsTablet": true
     },
-
     "android": {
       "package": "com.emanueldiazochoa.romaappstore",
-
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0B0B0F"
       },
-
       "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "CAMERA",
-        "NOTIFICATIONS"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO"
       ]
     },
-
     "web": {
       "favicon": "./assets/favicon.png"
     },
-
     "extra": {
       "eas": {
         "projectId": "8187eb6f-8363-4452-bbfa-77bbd0c85bf9"
       }
     },
-
     "plugins": [
       "expo-sqlite",
-
+      "expo-image-picker",
       [
         "expo-notifications",
         {
@@ -56,9 +46,9 @@
           "color": "#ff7a00"
         }
       ],
-
       "expo-secure-store",
       "expo-web-browser"
-    ]
+    ],
+    "owner": "emanueldiazochoa"
   }
 }

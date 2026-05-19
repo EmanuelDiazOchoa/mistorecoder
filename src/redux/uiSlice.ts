@@ -4,7 +4,11 @@ import { UIState } from '../types';
 
 export const ACCENT_COLORS = ['#E85D26', '#7C3AED', '#EC4899', '#10B981', '#F59E0B', '#3B82F6'];
 
-const initialState: UIState = { isDark: true, accentColor: '#E85D26' };
+const initialState: UIState = {
+  isDark: true,
+  accentColor: '#E85D26',
+  displayName: '',
+};
 
 const uiSlice = createSlice({
   name: 'ui',
@@ -21,8 +25,12 @@ const uiSlice = createSlice({
       state.accentColor = action.payload;
       AsyncStorage.setItem('accentColor', action.payload);
     },
+    setDisplayName: (state, action: PayloadAction<string>) => {
+      state.displayName = action.payload;
+      AsyncStorage.setItem('profileDisplayName', action.payload);
+    },
   },
 });
 
-export const { toggleDarkMode, setDarkMode, setAccentColor } = uiSlice.actions;
+export const { toggleDarkMode, setDarkMode, setAccentColor, setDisplayName } = uiSlice.actions;
 export default uiSlice.reducer;

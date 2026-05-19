@@ -37,7 +37,6 @@
 ### 🔐 Autenticación
 
 - Login y registro con **Firebase Auth** (email + contraseña)
-- **Google OAuth** nativo vía `@react-native-google-signin`
 - Sesión persistente con **SQLite** — no requiere login en cada apertura
 
 ### 🛍️ Catálogo
@@ -53,22 +52,25 @@
 - Carrito con control de cantidades persistido en **AsyncStorage**
 - Modal de confirmación animado (bottom sheet)
 - Pantalla de éxito animada con número de pedido, total y tiempo estimado
-- Simulador de estados del pedido:
-  - Confirmado
-  - Preparando
-  - En camino
+- Simulador de estados del pedido (Confirmado → Preparando → En camino)
 - Historial de pedidos
+
+### 👤 Perfil personalizable
+
+- **Nombre editable** — se sincroniza en tiempo real con el saludo del Home
+- **Foto de perfil** desde galería con recorte circular y persistencia local
+- **Ubicación humana** — reverse geocoding muestra "Buenos Aires, Argentina" en lugar de coordenadas
+- Saludo dinámico según hora del día
 
 ### 🎨 UI/UX
 
 - Diseño **dark mode premium** con sistema de tema dinámico
-- 6 colores de acento personalizables
-- Tab bar custom con SVG icons y animaciones
-- Animaciones con **React Native Animated API**
+- **6 colores de acento** personalizables — toda la UI reacciona en tiempo real
+- Tab bar custom con **SVG icons** y animaciones de escala
+- Animaciones con **React Native Animated API** (spring, stagger, sequence)
 - Toast animado para feedback visual
 - Botón de favorito animado con persistencia
 - Iconografía SVG sin dependencias de icon fonts
-- Ubicación del usuario en tiempo real
 
 ---
 
@@ -79,13 +81,13 @@
 | React Native | 0.83.6 | Base de la app |
 | Expo SDK | 55 | Toolchain y módulos nativos |
 | TypeScript | 5.5 | Tipado estático |
-| Firebase Auth | 11 | Autenticación email y Google |
+| Firebase Auth | 11 | Autenticación email/contraseña |
 | Firebase Realtime DB | 11 | Catálogo de productos |
-| Redux Toolkit | 2.8 | Estado global |
+| Redux Toolkit | 2.8 | Estado global (7 slices) |
 | AsyncStorage | 2.2 | Persistencia local |
 | expo-sqlite | 55 | Sesión persistente |
-| expo-location | 55 | Geolocalización |
-| expo-notifications | 55 | Notificaciones locales |
+| expo-location | 55 | Geolocalización + reverse geocoding |
+| expo-image-picker | 55 | Foto de perfil desde galería |
 | React Navigation | 7 | Stack + Bottom Tabs |
 | react-native-svg | 15 | Iconografía SVG |
 | EAS Build | — | Build nativo Android |
@@ -97,16 +99,16 @@
 ```txt
 src/
 ├── components/
-│   ├── ConfirmModal.tsx
-│   ├── ProductCard.tsx
-│   ├── StarRating.tsx
-│   ├── SkeletonCard.tsx
-│   └── Toast.tsx
+│   ├── ConfirmModal.tsx    # Bottom sheet animado
+│   ├── ProductCard.tsx     # Card con animaciones
+│   ├── StarRating.tsx      # Sistema de valoración
+│   ├── SkeletonCard.tsx    # Loader placeholder
+│   └── Toast.tsx           # Feedback animado
 ├── features/
 │   └── auth/authSlice.ts
 ├── hooks/
-│   ├── useRedux.ts
-│   └── useTheme.ts
+│   ├── useRedux.ts         # Typed hooks de Redux
+│   └── useTheme.ts         # Hook de tema dinámico
 ├── navigation/
 │   ├── StackNavigator.tsx
 │   └── BottomTabNavigator.tsx
@@ -116,8 +118,8 @@ src/
 │   ├── favoritesSlice.ts
 │   ├── ordersSlice.ts
 │   ├── productsSlice.ts
-│   ├── ratingsSlice.ts
-│   └── uiSlice.ts
+│   ├── ratingsSlice.ts     # Valoraciones con persistencia
+│   └── uiSlice.ts          # Tema + accentColor + displayName
 ├── screens/
 │   ├── LoginScreen.tsx
 │   ├── RegisterScreen.tsx
@@ -130,10 +132,10 @@ src/
 │   ├── OrdersScreen.tsx
 │   └── ProfileScreen.tsx
 ├── service/
-│   ├── firebase.ts
-│   └── sessionStorage.ts
-├── theme/index.ts
-├── types/index.ts
+│   ├── firebase.ts         # Inicialización Firebase
+│   └── sessionStorage.ts   # Sesión SQLite
+├── theme/index.ts          # getTheme(), palette, isLightColor()
+├── types/index.ts          # Tipos globales
 └── utils/productImages.ts
 ```
 
@@ -146,24 +148,23 @@ src/
 - Node.js 18+
 - Expo CLI — `npm install -g expo-cli`
 - EAS CLI — `npm install -g eas-cli`
-- Cuenta en Firebase
+- Cuenta en [Firebase](https://firebase.google.com)
 
 ### Setup
 
 ```bash
 # 1. Clonar repositorio
 git clone https://github.com/EmanuelDiazOchoa/mistorecoder
-
-# 2. Entrar al proyecto
 cd mistorecoder
 
-# 3. Instalar dependencias
+# 2. Instalar dependencias
 npm install
 
-# 4. Configurar variables de entorno
+# 3. Configurar variables de entorno
 cp .env.example .env
+# Completar con tus credenciales de Firebase
 
-# 5. Iniciar proyecto
+# 4. Iniciar proyecto
 npx expo start --dev-client
 ```
 
@@ -184,6 +185,9 @@ EXPO_PUBLIC_FIREBASE_APP_ID=
 ```bash
 # APK de desarrollo
 eas build --profile development --platform android
+
+# Preview (APK standalone sin Expo Go)
+eas build --profile preview --platform android
 
 # Producción
 eas build --profile production --platform android
@@ -226,17 +230,10 @@ eas build --profile production --platform android
 
 ## 🎨 Sistema de temas
 
-El usuario puede elegir entre 6 colores de acento desde la pantalla de perfil. Toda la UI reacciona en tiempo real: botones, badges, glows, chips y tab bar.
+El usuario elige entre 6 colores de acento desde Perfil. Toda la UI reacciona en tiempo real: botones, tab bar, badges, glows y chips. El nombre editado en Perfil se sincroniza instantáneamente con el saludo del Home via Redux.
 
 ```ts
-const ACCENT_COLORS = [
-  '#E85D26',
-  '#7C3AED',
-  '#EC4899',
-  '#10B981',
-  '#F59E0B',
-  '#3B82F6'
-];
+const ACCENT_COLORS = ['#E85D26', '#7C3AED', '#EC4899', '#10B981', '#F59E0B', '#3B82F6'];
 ```
 
 `isLightColor()` garantiza legibilidad del texto sobre cualquier color de acento.
@@ -249,6 +246,7 @@ const ACCENT_COLORS = [
 - [x] UI premium — dark mode, animaciones y SVG icons
 - [x] Sistema de valoraciones persistente
 - [x] Pantalla de éxito animada con tracking de pedido
+- [x] Perfil personalizable — nombre, foto y ubicación humana
 - [ ] Integración Mercado Pago Checkout Pro (sandbox)
 - [ ] Backend de estados de pedido en Firebase
 - [ ] Notificaciones push

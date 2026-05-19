@@ -23,20 +23,11 @@ function AnimatedCard({ children, index }: { children: ReactNode; index: number 
   const scale      = useRef(new Animated.Value(0.95)).current;
 
   useEffect(() => {
-    const delay = Math.min(index * 60, 400); // cap en 400ms para no esperar demasiado
+    const delay = Math.min(index * 60, 400);
     Animated.parallel([
-      Animated.spring(translateY, {
-        toValue: 0, tension: 65, friction: 11,
-        delay, useNativeDriver: true,
-      }),
-      Animated.timing(opacity, {
-        toValue: 1, duration: 280,
-        delay, useNativeDriver: true,
-      }),
-      Animated.spring(scale, {
-        toValue: 1, tension: 70, friction: 10,
-        delay, useNativeDriver: true,
-      }),
+      Animated.spring(translateY, { toValue: 0, tension: 65, friction: 11, delay, useNativeDriver: true }),
+      Animated.timing(opacity,    { toValue: 1, duration: 280, delay, useNativeDriver: true }),
+      Animated.spring(scale,      { toValue: 1, tension: 70, friction: 10, delay, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -68,7 +59,8 @@ function SkeletonList() {
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const dispatch = useAppDispatch();
   const { products, loading } = useAppSelector((state) => state.products);
-  const user = useAppSelector((state) => state.auth.user);
+  const user        = useAppSelector((state) => state.auth.user);
+  const storedName  = useAppSelector((state) => state.ui.displayName); // ← nombre desde Redux
 
   const [search,       setSearch]       = useState('');
   const [activeFilter, setActiveFilter] = useState('Todo');
@@ -105,7 +97,18 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     return '🌙 Buenas noches';
   };
 
-  const username    = user?.email?.split('@')[0] ?? 'visitante';
+  // Nombre: Redux > email limpio > fallback
+  const username = storedName ||
+    user?.email?.split('@')[0]
+      ?.replace(/[0-9_]/g, ' ')
+      .replace(/\./g, ' ')
+      .split(' ')
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ')
+      .trim() ||
+    'Vos';
+
   const activeLabel = FILTERS.find((f) => f.key === activeFilter)?.label ?? activeFilter;
 
   const ListHeader = (
@@ -232,13 +235,13 @@ const styles = StyleSheet.create({
   logoBadge:     { width: 48, height: 48, borderRadius: 16, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   logoBadgeText: { fontSize: 24 },
 
-  promoBanner: { borderRadius: 24, borderWidth: 1, padding: 22, flexDirection: 'row', alignItems: 'center', marginBottom: 24, overflow: 'hidden' },
-  promoGlow:   { position: 'absolute', width: 180, height: 180, borderRadius: 90, opacity: 0.08, top: -60, left: -40 },
-  promoContent:{ flex: 1 },
-  promoTag:    { fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 6 },
-  promoTitle:  { fontSize: 26, fontWeight: '900', color: '#FFFFFF', lineHeight: 30, marginBottom: 6 },
-  promoSub:    { fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 18 },
-  promoEmoji:  { fontSize: 64 },
+  promoBanner:  { borderRadius: 24, borderWidth: 1, padding: 22, flexDirection: 'row', alignItems: 'center', marginBottom: 24, overflow: 'hidden' },
+  promoGlow:    { position: 'absolute', width: 180, height: 180, borderRadius: 90, opacity: 0.08, top: -60, left: -40 },
+  promoContent: { flex: 1 },
+  promoTag:     { fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 6 },
+  promoTitle:   { fontSize: 26, fontWeight: '900', color: '#FFFFFF', lineHeight: 30, marginBottom: 6 },
+  promoSub:     { fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 18 },
+  promoEmoji:   { fontSize: 64 },
 
   searchWrap:  { paddingHorizontal: 20, marginBottom: 8 },
   filtersWrap: { paddingHorizontal: 20, paddingBottom: 16, gap: 8, flexDirection: 'row' },

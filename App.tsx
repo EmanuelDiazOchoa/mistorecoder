@@ -3,8 +3,6 @@ import { View, ActivityIndicator } from 'react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as WebBrowser from 'expo-web-browser';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { store } from './src/redux/store';
 import StackNavigator from './src/navigation/StackNavigator';
 import { loadCartFromStorage } from './src/redux/cartSlice';
@@ -14,13 +12,9 @@ import { setUser } from './src/features/auth/authSlice';
 import { getSession } from './src/service/sessionStorage';
 import { loadFavorites } from './src/redux/favoritesSlice';
 import { loadRatings } from './src/redux/ratingsSlice';
+import { setDisplayName } from './src/redux/uiSlice';
 import { useAppDispatch } from './src/hooks/useRedux';
 
-WebBrowser.maybeCompleteAuthSession();
-
-GoogleSignin.configure({
-  webClientId: '392409110606-j7dnu8jeiihkshh5eect131lgo6mm8s7.apps.googleusercontent.com',
-});
 
 function Root() {
   const dispatch = useAppDispatch();
@@ -28,7 +22,7 @@ function Root() {
 
   useEffect(() => {
     (async () => {
-      const [darkPref, ordersData, session, favoritesData, accentPref, ratingsData] =
+      const [darkPref, ordersData, session, favoritesData, accentPref, ratingsData, savedName] =
         await Promise.all([
           AsyncStorage.getItem('darkMode'),
           AsyncStorage.getItem('orders'),
@@ -36,6 +30,7 @@ function Root() {
           AsyncStorage.getItem('favorites'),
           AsyncStorage.getItem('accentColor'),
           AsyncStorage.getItem('ratings'),
+          AsyncStorage.getItem('profileDisplayName'),
         ]);
 
       dispatch(loadCartFromStorage());
@@ -43,6 +38,7 @@ function Root() {
       if (ordersData)        dispatch(loadOrders(JSON.parse(ordersData)));
       if (favoritesData)     dispatch(loadFavorites(JSON.parse(favoritesData)));
       if (ratingsData)       dispatch(loadRatings(JSON.parse(ratingsData)));
+      if (savedName)         dispatch(setDisplayName(savedName));
       if (accentPref && ACCENT_COLORS.includes(accentPref)) {
         dispatch(setAccentColor(accentPref));
       }

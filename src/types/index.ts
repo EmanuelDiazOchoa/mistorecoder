@@ -24,7 +24,7 @@ export type CartState = { items: CartItem[]; loaded: boolean };
 export type FavoritesState = { items: Product[] };
 export type OrdersState    = { orders: Order[] };
 export type ProductsState  = { products: Product[]; loading: boolean; error: string | null };
-export type UIState        = { isDark: boolean; accentColor: string };
+export type UIState        = { isDark: boolean; accentColor: string; displayName: string };
 
 export type RootState = {
   auth:      AuthState;

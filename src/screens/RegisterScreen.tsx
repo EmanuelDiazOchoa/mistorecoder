@@ -5,15 +5,13 @@ import {
   Platform, StatusBar, Animated,
 } from 'react-native';
 import { useAppDispatch } from '../hooks/useRedux';
-import { createUserWithEmailAndPassword, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { auth } from '../service/firebase';
 import { setUser } from '../features/auth/authSlice';
 import { saveSession } from '../service/sessionStorage';
 import { RootStackParamList } from '../types';
-import Svg, { Path } from 'react-native-svg';
 
 function Blob({ style, delay = 0 }: { style: any; delay?: number }) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -38,7 +36,6 @@ export default function RegisterScreen() {
   const [password,        setPassword]        = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading,         setLoading]         = useState(false);
-  const [googleLoading,   setGoogleLoading]   = useState(false);
 
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
@@ -49,31 +46,6 @@ export default function RegisterScreen() {
       Animated.spring(slideAnim, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
     ]).start();
   }, []);
-
-  const handleGoogleRegister = async () => {
-    try {
-      setGoogleLoading(true);
-      await GoogleSignin.hasPlayServices();
-      const response: any = await GoogleSignin.signIn();
-      const idToken: string | null = response?.data?.idToken ?? response?.idToken ?? null;
-      if (!idToken) throw new Error('No se recibió token de Google');
-      const credential = GoogleAuthProvider.credential(idToken);
-      const { user }   = await signInWithCredential(auth, credential);
-      await saveSession(user.email!, user.uid);
-      dispatch(setUser({ email: user.email!, uid: user.uid }));
-      navigation.replace('Main');
-    } catch (error: any) {
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) return;
-      if (error.code === statusCodes.IN_PROGRESS)       return;
-      if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        Alert.alert('Error', 'Google Play Services no disponible');
-        return;
-      }
-      Alert.alert('Error Google', error.message);
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
 
   const validate = () => {
     if (!email || !password || !confirmPassword) {
@@ -123,6 +95,7 @@ export default function RegisterScreen() {
         style={{ opacity: fadeAnim }}
         showsVerticalScrollIndicator={false}
       >
+        {/* Hero */}
         <Animated.View style={[styles.hero, { transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.logoRing}>
             <Text style={styles.logoEmoji}>🍞</Text>
@@ -131,28 +104,9 @@ export default function RegisterScreen() {
           <Text style={styles.heroSub}>Creá tu cuenta gratis</Text>
         </Animated.View>
 
+        {/* Card */}
         <Animated.View style={[styles.card, { transform: [{ translateY: slideAnim }] }]}>
           <Text style={styles.cardTitle}>Crear cuenta</Text>
-
-          <Pressable
-            style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed]}
-            onPress={handleGoogleRegister}
-            disabled={googleLoading}
-          >
-            <View style={styles.googleIconWrap}>
-              <Text style={styles.googleG}>G</Text>
-            </View>
-            {googleLoading
-              ? <ActivityIndicator color="#1A1208" style={{ flex: 1 }} />
-              : <Text style={styles.googleBtnText}>Registrarse con Google</Text>
-            }
-          </Pressable>
-
-          <View style={styles.divRow}>
-            <View style={styles.divLine} />
-            <Text style={styles.divText}>o con email</Text>
-            <View style={styles.divLine} />
-          </View>
 
           <TextInput
             style={styles.input}
@@ -181,7 +135,7 @@ export default function RegisterScreen() {
           />
 
           <Pressable
-            style={({ pressed }) => [styles.submitBtn, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.submitBtn, pressed && { opacity: 0.85 }]}
             onPress={handleRegister}
             disabled={loading}
           >
@@ -208,8 +162,8 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   bg:   { ...StyleSheet.absoluteFillObject, backgroundColor: '#0F0A1E' },
-  blob1: { position: 'absolute', width: 260, height: 260, borderRadius: 130, backgroundColor: '#7C3AED', opacity: 0.22, top: -40,   right: -70 },
-  blob2: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: '#E85D26', opacity: 0.20, top: 200,   left: -60  },
+  blob1: { position: 'absolute', width: 260, height: 260, borderRadius: 130, backgroundColor: '#7C3AED', opacity: 0.22, top: -40,    right: -70 },
+  blob2: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: '#E85D26', opacity: 0.20, top: 200,    left: -60  },
   blob3: { position: 'absolute', width: 160, height: 160, borderRadius: 80,  backgroundColor: '#10B981', opacity: 0.15, bottom: 180, right: 10  },
   scroll: { flexGrow: 1, justifyContent: 'center', padding: 24, paddingBottom: 40 },
 
@@ -217,21 +171,12 @@ const styles = StyleSheet.create({
   logoRing:  { width: 88, height: 88, borderRadius: 44, backgroundColor: 'rgba(124,58,237,0.18)', borderWidth: 2, borderColor: 'rgba(124,58,237,0.45)', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   logoEmoji: { fontSize: 44 },
   heroTitle: { fontSize: 34, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 5 },
-  heroSub:   { fontSize: 14, color: 'rgba(255,255,255,0.5)' },   // ← fix: era "font size: 14"
+  heroSub:   { fontSize: 14, color: 'rgba(255,255,255,0.5)' },
 
   card:      { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 28, padding: 28, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
   cardTitle: { fontSize: 22, fontWeight: '800', color: '#FFFFFF', marginBottom: 22, textAlign: 'center' },
 
-  googleBtn:      { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, paddingVertical: 15, paddingHorizontal: 20, marginBottom: 20, shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 },
-  googleIconWrap: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#4285F4', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
-  googleG:        { color: '#fff', fontSize: 16, fontWeight: '900' },
-  googleBtnText:  { flex: 1, textAlign: 'center', marginRight: 30, fontSize: 15, fontWeight: '700', color: '#1A1208' },
-
-  divRow:  { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
-  divLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
-  divText: { color: 'rgba(255,255,255,0.3)', fontSize: 12 },
-
-  input:         { height: 52, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, paddingHorizontal: 16, color: '#FFFFFF', marginBottom: 16 },
+  input:         { height: 52, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, paddingHorizontal: 16, color: '#FFFFFF', marginBottom: 16, fontSize: 15 },
   submitBtn:     { paddingVertical: 16, borderRadius: 16, alignItems: 'center', marginBottom: 18, backgroundColor: '#7C3AED' },
   submitBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 
@@ -239,6 +184,5 @@ const styles = StyleSheet.create({
   loginText: { color: 'rgba(255,255,255,0.6)', fontSize: 13 },
   loginLink: { color: '#FFFFFF', fontWeight: '800' },
 
-  footer:  { marginTop: 28, textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 12 },
-  pressed: { opacity: 0.85 },
+  footer: { marginTop: 28, textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 12 },
 });

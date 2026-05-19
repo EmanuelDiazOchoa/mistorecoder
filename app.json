@@ -1,17 +1,20 @@
 {
   "expo": {
-    "name": "mistore",
-    "slug": "mistore",
+    "name": "Roma App Store",
+    "slug": "roma-app-store",
     "version": "1.0.0",
-    "scheme": "mistore",
+    "scheme": "romaappstore",
+
     "orientation": "portrait",
+
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+
+    "userInterfaceStyle": "dark",
 
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0B0B0F"
     },
 
     "ios": {
@@ -19,11 +22,13 @@
     },
 
     "android": {
-      "package": "com.emanueldiazochoa.mistore",
+      "package": "com.emanueldiazochoa.romaappstore",
+
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0B0B0F"
       },
+
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "CAMERA",
@@ -43,13 +48,15 @@
 
     "plugins": [
       "expo-sqlite",
+
       [
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#ffffff"
+          "color": "#ff7a00"
         }
       ],
+
       "expo-secure-store",
       "expo-web-browser"
     ]

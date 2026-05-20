@@ -97,7 +97,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     return '🌙 Buenas noches';
   };
 
-  // Nombre: Redux > email limpio > fallback
   const username = storedName ||
     user?.email?.split('@')[0]
       ?.replace(/[0-9_]/g, ' ')
@@ -148,7 +147,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         opacity: searchAnim,
         transform: [{ translateY: searchAnim.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
       }]}>
-        <SearchBar value={search} onChangeText={setSearch} />
+        <SearchBar value={search} onChangeText={setSearch} resultCount={filtered.length} />
       </Animated.View>
 
       <Animated.View style={{ opacity: searchAnim }}>

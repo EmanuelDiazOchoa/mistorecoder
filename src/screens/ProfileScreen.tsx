@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, Pressable,
   Alert, StatusBar, ScrollView, Animated,
-  TextInput, Modal, Image,
+  TextInput, Modal, Image, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { signOut } from 'firebase/auth';
@@ -24,7 +24,6 @@ import { RootStackParamList } from '../types';
 interface Coords { latitude: number; longitude: number; }
 interface StatCardProps { label: string; value: number; icon: string; color: string; delay: number; }
 
-// ── SVG Icons ──────────────────────────────────────────────────────────────
 function IconCamera({ color, size = 18 }: { color: string; size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -46,7 +45,6 @@ function IconEdit({ color, size = 16 }: { color: string; size?: number }) {
   );
 }
 
-// ── Saludo elegante según hora ─────────────────────────────────────────────
 const getGreeting = () => {
   const h = new Date().getHours();
   if (h < 12) return 'Buenos días';
@@ -54,7 +52,6 @@ const getGreeting = () => {
   return 'Buenas noches';
 };
 
-// ── StatCard ────────────────────────────────────────────────────────────────
 function StatCard({ label, value, icon, color, delay }: StatCardProps) {
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -74,7 +71,6 @@ function StatCard({ label, value, icon, color, delay }: StatCardProps) {
   );
 }
 
-// ── Modal para editar nombre ────────────────────────────────────────────────
 function EditNameModal({
   visible, currentName, accentColor, onSave, onClose,
 }: {
@@ -102,10 +98,15 @@ function EditNameModal({
 
   return (
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
-      <Animated.View style={[styles.modalBackdrop, { opacity: backdropAnim }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-      </Animated.View>
-      <Animated.View style={[styles.modalSheet, { transform: [{ translateY: slideAnim }] }]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={StyleSheet.absoluteFillObject}
+        pointerEvents="box-none"
+      >
+        <Animated.View style={[styles.modalBackdrop, { opacity: backdropAnim }]}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        </Animated.View>
+        <Animated.View style={[styles.modalSheet, { transform: [{ translateY: slideAnim }] }]}>
         <View style={styles.modalHandle} />
         <View style={[styles.modalGlow, { backgroundColor: accentColor }]} />
 
@@ -140,13 +141,13 @@ function EditNameModal({
             </Text>
           </Pressable>
         </View>
-        <View style={{ height: 24 }} />
-      </Animated.View>
+          <View style={{ height: 24 }} />
+        </Animated.View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
-// ── ProfileScreen ───────────────────────────────────────────────────────────
 export default function ProfileScreen() {
   const user        = useAppSelector((state) => state.auth.user);
   const orders      = useAppSelector((state) => state.orders.orders);
@@ -158,18 +159,15 @@ export default function ProfileScreen() {
   const dispatch    = useAppDispatch();
   const navigation  = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  // State
   const [locationText, setLocationText] = useState<string | null>(null);
   const [photoUri,     setPhotoUri]     = useState<string | null>(null);
   const [displayName_local, setDisplayName_local] = useState<string>('');
   const [editingName,  setEditingName]  = useState(false);
   const photoScale = useRef(new Animated.Value(1)).current;
 
-  // Anims
   const headerAnim  = useRef(new Animated.Value(0)).current;
   const contentAnim = useRef(new Animated.Value(0)).current;
 
-  // ── Carga inicial ─────────────────────────────────────────────────────────
   useEffect(() => {
     Animated.stagger(150, [
       Animated.spring(headerAnim,  { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
@@ -183,7 +181,6 @@ export default function ProfileScreen() {
   const loadSavedData = async () => {
     const savedPhoto = await AsyncStorage.getItem('profilePhotoUri');
 
-    // Nombre: Redux (ya cargado en App.tsx) > Firebase displayName > email limpio
     if (storedName) {
       setDisplayName_local(storedName);
     } else if (auth.currentUser?.displayName) {
@@ -222,22 +219,27 @@ export default function ProfileScreen() {
         setLocationText(parts.join(', '));
       }
     } catch {
-      // sin permisos o sin conexión: no mostramos nada
     }
   };
 
-  // ── Guardar nombre ────────────────────────────────────────────────────────
   const handleSaveName = async (name: string) => {
     setDisplayName_local(name);
     setEditingName(false);
-    dispatch(setDisplayName(name));  // ← sincroniza Redux → HomeScreen se actualiza
+    dispatch(setDisplayName(name));  
   };
 
-  // ── Foto de perfil ────────────────────────────────────────────────────────
   const handlePickPhoto = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status, canAskAgain } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería para cambiar la foto');
+      if (!canAskAgain) {
+        Alert.alert(
+          'Permiso denegado',
+          'Para cambiar la foto andá a Configuración → Roma Store → Permisos → Fotos y activalo.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería para cambiar la foto de perfil.');
+      }
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -249,7 +251,6 @@ export default function ProfileScreen() {
     if (!result.canceled && result.assets[0]) {
       const uri = result.assets[0].uri;
 
-      // Animación de rebote en el avatar
       Animated.sequence([
         Animated.spring(photoScale, { toValue: 0.88, tension: 120, friction: 6, useNativeDriver: true }),
         Animated.spring(photoScale, { toValue: 1,    tension: 70,  friction: 8, useNativeDriver: true }),
@@ -260,7 +261,6 @@ export default function ProfileScreen() {
     }
   };
 
-  // ── Logout ────────────────────────────────────────────────────────────────
   const handleLogout = () => {
     Alert.alert('Cerrar sesión', '¿Estás seguro?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -276,7 +276,6 @@ export default function ProfileScreen() {
     ]);
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar barStyle="light-content" />
@@ -294,18 +293,15 @@ export default function ProfileScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
 
-        {/* ── Header / Avatar ─────────────────────────────────────────── */}
         <Animated.View style={[styles.profileHeader, {
           opacity: headerAnim,
           transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
         }]}>
 
-          {/* Saludo elegante */}
           <Text style={[styles.greeting, { color: `${accentColor}CC` }]}>
             {getGreeting()}
           </Text>
 
-          {/* Avatar con botón de cámara */}
           <Pressable onPress={handlePickPhoto} style={styles.avatarWrap}>
             <Animated.View style={[styles.avatarRing, { borderColor: accentColor, shadowColor: accentColor, transform: [{ scale: photoScale }] }]}>
               {photoUri ? (
@@ -319,13 +315,11 @@ export default function ProfileScreen() {
               )}
             </Animated.View>
 
-            {/* Badge cámara */}
             <View style={[styles.cameraBadge, { backgroundColor: accentColor }]}>
               <IconCamera color={isLightColor(accentColor) ? '#0A0A0F' : '#FFFFFF'} size={14} />
             </View>
           </Pressable>
 
-          {/* Nombre editable */}
           <Pressable style={styles.nameRow} onPress={() => setEditingName(true)}>
             <Text style={styles.profileName}>{displayName_local}</Text>
             <View style={[styles.editBadge, { backgroundColor: `${accentColor}20`, borderColor: `${accentColor}40` }]}>
@@ -335,7 +329,6 @@ export default function ProfileScreen() {
 
           <Text style={styles.profileEmail}>{user?.email}</Text>
 
-          {/* Ubicación humana */}
           {locationText && (
             <View style={styles.locationRow}>
               <MaterialIcons name="location-on" size={13} color={accentColor} />
@@ -348,7 +341,6 @@ export default function ProfileScreen() {
           </View>
         </Animated.View>
 
-        {/* ── Stats ───────────────────────────────────────────────────── */}
         <Animated.View style={[styles.statsRow, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
@@ -358,7 +350,6 @@ export default function ProfileScreen() {
           <StatCard label="Favoritos"  value={favorites.length} icon="favorite"      color="#FF4D6D"     delay={400} />
         </Animated.View>
 
-        {/* ── Favoritos ───────────────────────────────────────────────── */}
         {favorites.length > 0 && (
           <Animated.View style={[styles.section, {
             opacity: contentAnim,
@@ -375,7 +366,6 @@ export default function ProfileScreen() {
           </Animated.View>
         )}
 
-        {/* ── Color de acento ─────────────────────────────────────────── */}
         <Animated.View style={[styles.section, {
           opacity: contentAnim,
           transform: [{ translateY: contentAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
@@ -410,7 +400,6 @@ export default function ProfileScreen() {
           </View>
         </Animated.View>
 
-        {/* ── Logout ──────────────────────────────────────────────────── */}
         <Animated.View style={{ opacity: contentAnim }}>
           <Pressable
             style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
@@ -427,17 +416,14 @@ export default function ProfileScreen() {
   );
 }
 
-// ── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1 },
   bgGlow1: { position: 'absolute', width: 300, height: 300, borderRadius: 150, opacity: 0.06, top: -60, left: -80 },
   bgGlow2: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: '#7C3AED', opacity: 0.06, top: 200, right: -60 },
 
-  // Header
   profileHeader: { alignItems: 'center', paddingTop: 64, paddingBottom: 32, paddingHorizontal: 24 },
   greeting: { fontSize: 14, fontWeight: '600', letterSpacing: 0.3, marginBottom: 20 },
 
-  // Avatar
   avatarWrap: { position: 'relative', marginBottom: 16 },
   avatarRing: {
     width: 104, height: 104, borderRadius: 52,
@@ -454,7 +440,6 @@ const styles = StyleSheet.create({
     borderWidth: 2, borderColor: '#0A0A0F',
   },
 
-  // Nombre
   nameRow:     { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   profileName: { fontSize: 24, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.3 },
   editBadge: {
@@ -469,39 +454,32 @@ const styles = StyleSheet.create({
   memberBadge:  { backgroundColor: 'rgba(245,158,11,0.15)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 6 },
   memberBadgeText: { fontSize: 13, fontWeight: '700', color: '#F59E0B' },
 
-  // Stats
   statsRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginBottom: 24 },
   stat: { flex: 1, alignItems: 'center', padding: 16, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', gap: 6 },
   statIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   statValue: { fontSize: 22, fontWeight: '900', color: '#FFFFFF' },
   statLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.35)' },
 
-  // Section
   section: { marginHorizontal: 20, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', paddingHorizontal: 18, marginBottom: 16, overflow: 'hidden' },
   sectionLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 1.8, color: 'rgba(255,255,255,0.25)', paddingTop: 16, paddingBottom: 10 },
 
-  // Favs
   favRow:   { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
   favName:  { flex: 1, fontSize: 14, fontWeight: '600', color: '#FFFFFF' },
   favPrice: { fontSize: 14, fontWeight: '800' },
 
-  // Colors
   colorRow:       { flexDirection: 'row', gap: 12, paddingVertical: 16, flexWrap: 'wrap' },
   colorDot:       { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   colorDotActive: { borderWidth: 3, shadowOpacity: 0.4, shadowRadius: 6, elevation: 4 },
   colorCheck:     { fontSize: 16, fontWeight: '900' },
 
-  // Settings
   settingRow:  { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
   settingIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   settingText: { flex: 1, fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
   settingValue: { fontSize: 13, color: 'rgba(255,255,255,0.35)' },
 
-  // Logout
   logoutBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginHorizontal: 20, paddingVertical: 16, borderRadius: 18, backgroundColor: 'rgba(255,77,77,0.1)', borderWidth: 1, borderColor: 'rgba(255,77,77,0.25)' },
   logoutText: { fontSize: 16, fontWeight: '800', color: '#FF4D4D' },
 
-  // Modal
   modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.75)' },
   modalSheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
